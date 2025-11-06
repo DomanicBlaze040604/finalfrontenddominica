@@ -9,6 +9,7 @@ import ArticlePage from "./pages/ArticlePage";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
 import Register from "./pages/Register";
+import SearchResults from "./pages/SearchResults";
 import StaticPage from "./pages/StaticPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPage from "./pages/AdminPage";
@@ -31,6 +32,7 @@ const App = () => (
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           
