@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
     outDir: "dist",
     sourcemap: mode === "development",
     minify: "terser",
+    assetsDir: "assets",
     rollupOptions: {
       output: {
         manualChunks: {
@@ -28,6 +29,22 @@ export default defineConfig(({ mode }) => ({
           editor: ["@tiptap/react", "@tiptap/starter-kit"],
           utils: ["axios", "@tanstack/react-query", "clsx", "tailwind-merge"],
         },
+        assetFileNames: (assetInfo) => {
+          if (!assetInfo.name) {
+            return `assets/[name]-[hash][extname]`;
+          }
+          const info = assetInfo.name.split('.');
+          const extType = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/css/i.test(extType)) {
+            return `assets/css/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
       },
     },
     terserOptions: {

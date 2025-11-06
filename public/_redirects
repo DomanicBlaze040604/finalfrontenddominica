@@ -1,0 +1,11 @@
+# SPA Fallback - All routes should serve index.html
+/*    /index.html   200
+
+# Asset handling - Ensure proper MIME types
+/assets/*  /assets/:splat  200
+*.js       /assets/:splat  200
+*.css      /assets/:splat  200
+*.svg      /assets/:splat  200
+*.png      /assets/:splat  200
+*.jpg      /assets/:splat  200
+*.ico      /assets/:splat  200
