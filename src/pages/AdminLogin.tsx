@@ -20,17 +20,36 @@ const AdminLogin = () => {
   });
 
   const loginMutation = useMutation({
-    mutationFn: authService.login,
+    mutationFn: (creds: typeof credentials) => {
+      console.log('🔐 Login mutation called with:', creds);
+      return authService.login(creds);
+    },
     onSuccess: (data) => {
-      const isAdmin = credentials.email === "admin@dominicanews.com";
+      console.log('🔐 Login successful:', data);
+      const isAdmin = credentials.email === "admin@dominicanews.com" || 
+                     credentials.email.includes('admin');
+      
       toast({
         title: "Welcome back!",
         description: isAdmin ? "Successfully logged in to admin panel." : "Successfully logged in.",
       });
-      navigate(isAdmin ? "/admin" : "/");
+      
+      // Small delay to ensure token is set
+      setTimeout(() => {
+        navigate(isAdmin ? "/admin" : "/");
+      }, 100);
     },
     onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : "Invalid credentials. Please try again.";
+      console.error('🔐 Login error:', error);
+      
+      let errorMessage = "Invalid credentials. Please try again.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+      
       toast({
         title: "Login Failed",
         description: errorMessage,
@@ -41,7 +60,29 @@ const AdminLogin = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(credentials);
+    
+    console.log('🔐 Form submitted with credentials:', credentials);
+    
+    // Validate credentials
+    if (!credentials.email || !credentials.password) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter both email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      loginMutation.mutate(credentials);
+    } catch (error) {
+      console.error('🔐 Mutation error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

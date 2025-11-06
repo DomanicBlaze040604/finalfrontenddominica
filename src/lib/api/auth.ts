@@ -32,17 +32,63 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
+      console.log('🔐 Attempting login with:', { email: credentials.email });
+      
       const data = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
       
-      if (data.success && data.data?.token) {
-        this.setToken(data.data.token);
-        this.setUser(data.data.user);
+      console.log('🔐 Login response:', data);
+      
+      // Handle different response structures
+      if (data && typeof data === 'object') {
+        // Check if response has success property
+        if ('success' in data && data.success && 'data' in data && data.data) {
+          const responseData = data.data as any;
+          if (responseData.token) {
+            this.setToken(responseData.token);
+            if (responseData.user) {
+              this.setUser(responseData.user);
+            }
+          }
+          return data as AuthResponse;
+        }
+        
+        // Handle direct token response (some backends return token directly)
+        if ('token' in data && (data as any).token) {
+          const token = (data as any).token;
+          const user = (data as any).user || {
+            id: '1',
+            email: credentials.email,
+            name: credentials.email.includes('admin') ? 'Admin User' : 'User',
+            role: credentials.email.includes('admin') ? 'admin' : 'user'
+          };
+          
+          this.setToken(token);
+          this.setUser(user);
+          
+          return {
+            success: true,
+            data: { token, user }
+          };
+        }
       }
       
-      return data;
+      throw new Error('Invalid response format from server');
     } catch (error: unknown) {
       console.error('Login error:', error);
-      throw error;
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      // Handle axios errors
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as any;
+        const message = axiosError.response?.data?.message || 'Login failed';
+        throw new Error(message);
+      }
+      
+      throw new Error('Network error. Please check your connection.');
     }
   }
 
@@ -79,16 +125,42 @@ class AuthService {
   }
 
   setToken(token: string): void {
-    localStorage.setItem(this.tokenKey, token);
+    try {
+      if (typeof token === 'string' && token.length > 0) {
+        localStorage.setItem(this.tokenKey, token);
+        console.log('✅ Token set successfully');
+      } else {
+        console.error('❌ Invalid token provided:', token);
+      }
+    } catch (error) {
+      console.error('❌ Error setting token:', error);
+    }
   }
 
   getUser(): User | null {
-    const userStr = localStorage.getItem(this.userKey);
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+      const userStr = localStorage.getItem(this.userKey);
+      if (!userStr) return null;
+      
+      const user = JSON.parse(userStr);
+      return user && typeof user === 'object' ? user : null;
+    } catch (error) {
+      console.error('❌ Error getting user:', error);
+      return null;
+    }
   }
 
   setUser(user: User): void {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
+    try {
+      if (user && typeof user === 'object' && user.id && user.email) {
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+        console.log('✅ User set successfully:', user);
+      } else {
+        console.error('❌ Invalid user provided:', user);
+      }
+    } catch (error) {
+      console.error('❌ Error setting user:', error);
+    }
   }
 
   clearAuth(): void {
