@@ -178,9 +178,7 @@ const AdminLogin = () => {
                   Register here
                 </Link>
               </p>
-              <div className="text-xs text-gray-500 mt-4 p-2 bg-gray-50 rounded">
-                <strong>Admin Access:</strong> Use admin@dominicanews.com
-              </div>
+
               <Button
                 variant="link"
                 onClick={() => navigate("/")}
