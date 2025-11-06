@@ -18,6 +18,12 @@ import CategoriesManager from "./pages/admin/CategoriesManager";
 import PagesManager from "./pages/admin/PagesManager";
 import BreakingNewsManager from "./pages/admin/BreakingNewsManager";
 import SocialMediaManager from "./pages/admin/SocialMediaManager";
+import AuthorsManager from "./pages/admin/AuthorsManager";
+import TagsManager from "./pages/admin/TagsManager";
+import MediaLibrary from "./pages/admin/MediaLibrary";
+import ScheduleManager from "./pages/admin/ScheduleManager";
+import SiteSettings from "./pages/admin/SiteSettings";
+import Analytics from "./pages/admin/Analytics";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -84,6 +90,36 @@ const App = () => (
           <Route path="/admin/social-media" element={
             <ProtectedRoute>
               <SocialMediaManager />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/authors" element={
+            <ProtectedRoute>
+              <AuthorsManager />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/tags" element={
+            <ProtectedRoute>
+              <TagsManager />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/media" element={
+            <ProtectedRoute>
+              <MediaLibrary />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/schedule" element={
+            <ProtectedRoute>
+              <ScheduleManager />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedRoute>
+              <SiteSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics" element={
+            <ProtectedRoute>
+              <Analytics />
             </ProtectedRoute>
           } />
           
