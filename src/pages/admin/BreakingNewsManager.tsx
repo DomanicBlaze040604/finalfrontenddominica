@@ -1,54 +1,133 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { breakingNewsApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, PlusCircle, Edit, Trash2 } from "lucide-react";
+import { AlertCircle, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BreakingNewsManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingNews, setEditingNews] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: "",
     link: "",
     isActive: true,
-    priority: "high",
+    priority: "high" as 'high' | 'medium' | 'low',
   });
 
-  // Sample breaking news - in production, fetch from API
-  const breakingNews = [
-    {
-      id: 1,
-      title: "Tropical Storm Warning Issued for Dominica",
-      link: "/article/tropical-storm-warning",
-      isActive: true,
-      priority: "high",
-      createdAt: "2025-11-06T10:00:00Z",
+  // Fetch breaking news from API
+  const { data, isLoading } = useQuery({
+    queryKey: ["breaking-news"],
+    queryFn: () => breakingNewsApi.getAll(),
+  });
+
+  const breakingNews = data?.success ? data.data : [];
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: breakingNewsApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["breaking-news"] });
+      toast({
+        title: "Breaking News Added",
+        description: `"${formData.title}" has been published.`,
+      });
+      resetForm();
     },
-    {
-      id: 2,
-      title: "Prime Minister Announces New Infrastructure Plan",
-      link: "/article/infrastructure-plan",
-      isActive: false,
-      priority: "medium",
-      createdAt: "2025-11-05T14:30:00Z",
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create breaking news",
+        variant: "destructive",
+      });
     },
-  ];
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      breakingNewsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["breaking-news"] });
+      toast({
+        title: "Breaking News Updated",
+        description: `"${formData.title}" has been updated.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update breaking news",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: breakingNewsApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["breaking-news"] });
+      toast({
+        title: "Breaking News Deleted",
+        description: "The alert has been removed.",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete breaking news",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Breaking News Added",
-      description: `"${formData.title}" has been published.`,
-    });
-    setIsDialogOpen(false);
+    
+    if (editingNews) {
+      updateMutation.mutate({
+        id: editingNews.id,
+        data: formData
+      });
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({ title: "", link: "", isActive: true, priority: "high" });
+    setEditingNews(null);
+    setIsDialogOpen(false);
+  };
+
+  const handleEdit = (news: any) => {
+    setEditingNews(news);
+    setFormData({
+      title: news.title,
+      link: news.link || "",
+      isActive: news.isActive,
+      priority: news.priority,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    if (confirm(`Are you sure you want to delete "${title}"?`)) {
+      deleteMutation.mutate(id);
+    }
   };
 
   return (
@@ -64,14 +143,16 @@ const BreakingNewsManager = () => {
           </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 bg-destructive hover:bg-destructive/90">
+                <Button className="gap-2 bg-destructive hover:bg-destructive/90" onClick={resetForm}>
                   <AlertCircle className="h-4 w-4" />
                   Add Breaking News
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Breaking News Alert</DialogTitle>
+                  <DialogTitle>
+                    {editingNews ? "Edit Breaking News Alert" : "Add Breaking News Alert"}
+                  </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
@@ -100,7 +181,7 @@ const BreakingNewsManager = () => {
                     <select
                       id="priority"
                       value={formData.priority}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as 'high' | 'medium' | 'low' }))}
                       className="w-full px-3 py-2 border border-border rounded-md bg-background"
                     >
                       <option value="high">High (Red Alert)</option>
@@ -129,12 +210,18 @@ const BreakingNewsManager = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
+                      onClick={resetForm}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" className="bg-destructive hover:bg-destructive/90">
-                      Publish Alert
+                    <Button 
+                      type="submit" 
+                      className="bg-destructive hover:bg-destructive/90"
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                    >
+                      {createMutation.isPending || updateMutation.isPending 
+                        ? "Saving..." 
+                        : editingNews ? "Update Alert" : "Publish Alert"}
                     </Button>
                   </div>
                 </form>
@@ -142,8 +229,15 @@ const BreakingNewsManager = () => {
             </Dialog>
           </div>
 
-          <div className="space-y-4">
-            {breakingNews.map((item) => (
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {breakingNews.map((item) => (
               <Card key={item.id} className="interactive-card border-l-4 border-l-destructive">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -180,10 +274,20 @@ const BreakingNewsManager = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEdit(item)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="text-destructive">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive"
+                        onClick={() => handleDelete(item.id, item.title)}
+                        disabled={deleteMutation.isPending}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -192,16 +296,17 @@ const BreakingNewsManager = () => {
               </Card>
             ))}
 
-            {breakingNews.length === 0 && (
-              <Card className="p-12 text-center">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No breaking news alerts</p>
-                <Button onClick={() => setIsDialogOpen(true)} className="bg-destructive">
-                  Create First Alert
-                </Button>
-              </Card>
-            )}
-          </div>
+              {breakingNews.length === 0 && (
+                <Card className="p-12 text-center">
+                  <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">No breaking news alerts</p>
+                  <Button onClick={() => setIsDialogOpen(true)} className="bg-destructive">
+                    Create First Alert
+                  </Button>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
       </AdminLayout>
     );

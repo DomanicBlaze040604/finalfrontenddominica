@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { breakingNewsApi } from "@/lib/api";
 import { AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -14,15 +16,14 @@ export function BreakingNewsBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Sample breaking news - in production, fetch from API
-  const breakingNews: BreakingNews[] = [
-    {
-      id: "1",
-      title: "🌪️ Tropical Storm Warning: Residents Advised to Prepare for Heavy Rainfall",
-      link: "/article/tropical-storm-warning",
-      priority: "high",
-    },
-  ];
+  // Fetch active breaking news from API
+  const { data } = useQuery({
+    queryKey: ["breaking-news", "active"],
+    queryFn: () => breakingNewsApi.getActive(),
+    refetchInterval: 60000, // Refetch every minute
+  });
+
+  const breakingNews: BreakingNews[] = data?.success ? data.data : [];
 
   useEffect(() => {
     if (breakingNews.length <= 1) return;
