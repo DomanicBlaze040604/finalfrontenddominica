@@ -48,6 +48,8 @@ export function NewsletterSignup() {
 
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <Input
+              id="newsletter-email"
+              name="email"
               type="email"
               placeholder="Enter your email"
               value={email}

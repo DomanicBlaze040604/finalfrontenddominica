@@ -65,14 +65,29 @@ axiosInstance.interceptors.response.use(
       headers: error.response?.headers,
     });
     
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      // Only redirect to login if not already on login page
+      if (!window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+      }
+    }
+    
+    // Handle 404 Not Found
+    if (error.response?.status === 404) {
+      console.warn('⚠️ Resource not found:', error.config?.url);
+    }
+    
+    // Handle 500 Server Error
+    if (error.response?.status === 500) {
+      console.error('🔥 Server error - Backend may be down');
     }
     
     // Log CORS errors specifically
     if (error.message === 'Network Error' || !error.response) {
-      console.error('🚫 CORS or Network Error - Check backend CORS configuration');
+      console.error('🚫 CORS or Network Error - Check backend CORS configuration and ensure backend is running');
     }
     
     return Promise.reject(error);

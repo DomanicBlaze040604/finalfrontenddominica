@@ -38,6 +38,8 @@ export function FooterNewsletter() {
       
       <form onSubmit={handleSubmit} className="space-y-3">
         <Input
+          id="footer-newsletter-email"
+          name="email"
           type="email"
           placeholder="Your email address"
           value={email}
