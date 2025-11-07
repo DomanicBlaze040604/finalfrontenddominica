@@ -19,6 +19,11 @@ export const articlesApi = {
     return apiClient.get(`/api/articles/${slug}`) as Promise<ApiResponse<Article>>;
   },
 
+  // Get single article by ID
+  getById: async (id: string) => {
+    return apiClient.get(`/api/articles/${id}`) as Promise<ApiResponse<Article>>;
+  },
+
   // Get articles by category
   getByCategory: async (categorySlug: string, params?: ArticlesParams) => {
     return apiClient.get(`/api/categories/${categorySlug}/articles`, {

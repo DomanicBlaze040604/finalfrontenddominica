@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -53,23 +53,80 @@ const AdminPage = () => {
     queryFn: () => authorsApi.getAll({ limit: 50 }),
   });
 
+  // Fetch existing article data when editing
+  const { data: articleData, isLoading: isLoadingArticle } = useQuery({
+    queryKey: ["article", id],
+    queryFn: async () => {
+      try {
+        // Try to get by ID first (for editing from admin panel)
+        const result = await articlesApi.getById(id!);
+        return result;
+      } catch (error) {
+        console.log('Failed to fetch by ID, trying by slug:', error);
+        // Fallback to slug if ID doesn't work
+        try {
+          const result = await articlesApi.getBySlug(id!);
+          return result;
+        } catch (slugError) {
+          console.error('Failed to fetch article by slug:', slugError);
+          throw slugError;
+        }
+      }
+    },
+    enabled: isEditing && !!id,
+  });
+
   const categories = categoriesData?.success ? categoriesData.data : [];
   const authors = authorsData?.success ? authorsData.data : [];
 
-  // Mutation for creating article
-  const createArticleMutation = useMutation({
-    mutationFn: articlesApi.create,
+  // Populate form when editing existing article
+  useEffect(() => {
+    if (articleData?.success && articleData.data) {
+      const article = articleData.data;
+      setFormData({
+        title: article.title,
+        slug: article.slug,
+        summary: article.excerpt || "",
+        body: article.content,
+        imageAlt: article.featuredImageAlt || "",
+        metaTitle: article.seo?.metaTitle || "",
+        metaDescription: article.seo?.metaDescription || article.excerpt || "",
+        author: article.author?.id || "",
+        status: article.status,
+        pinned: article.isPinned || false,
+      });
+      
+      if (article.featuredImage) {
+        setUploadedImageUrl(article.featuredImage);
+        setImagePreview(article.featuredImage);
+      }
+      
+      if (article.category?.id) {
+        setSelectedCategories([article.category.id]);
+      }
+    }
+  }, [articleData]);
+
+  // Mutation for creating/updating article
+  const saveArticleMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (isEditing && id) {
+        return await articlesApi.update(id, data);
+      } else {
+        return await articlesApi.create(data);
+      }
+    },
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: `Article "${formData.title}" has been ${formData.status === "published" ? "published" : "saved as draft"}.`,
+        description: `Article "${formData.title}" has been ${isEditing ? "updated" : formData.status === "published" ? "published" : "saved as draft"}.`,
       });
       navigate(`/article/${data.data.slug}`);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create article",
+        description: error.response?.data?.message || `Failed to ${isEditing ? "update" : "create"} article`,
         variant: "destructive",
       });
     },
@@ -206,7 +263,7 @@ const AdminPage = () => {
       },
     };
 
-    createArticleMutation.mutate(articleData);
+    saveArticleMutation.mutate(articleData);
   };
 
   const handlePreview = () => {
@@ -215,6 +272,22 @@ const AdminPage = () => {
       description: "Article preview would open in a new tab",
     });
   };
+
+  // Show loading state when fetching article for editing
+  if (isEditing && isLoadingArticle) {
+    return (
+      <AdminLayout>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading article...</p>
+            </div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -523,12 +596,14 @@ const AdminPage = () => {
                 type="submit"
                 size="lg"
                 className="gap-2 hover-scale"
-                disabled={createArticleMutation.isPending || isUploading}
+                disabled={saveArticleMutation.isPending || isUploading}
               >
                 <Save className="h-4 w-4" />
-                {createArticleMutation.isPending 
+                {saveArticleMutation.isPending 
                   ? "Saving..." 
-                  : formData.status === "published" ? "Publish Article" : "Save Draft"}
+                  : isEditing 
+                    ? "Update Article"
+                    : formData.status === "published" ? "Publish Article" : "Save Draft"}
               </Button>
             </div>
           </form>

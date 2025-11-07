@@ -56,6 +56,8 @@ export interface Article {
   location?: string;
   language?: string;
   seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
     keywords?: string[];
   };
 }

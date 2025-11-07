@@ -17,8 +17,18 @@ const CategoryPage = () => {
 
   const { data: articlesData, isLoading, error } = useQuery({
     queryKey: ["articles", "category", slug],
-    queryFn: () => articlesApi.getByCategory(slug!, { limit: 20, status: "published" }),
+    queryFn: async () => {
+      try {
+        // Try the category-specific endpoint first
+        return await articlesApi.getByCategory(slug!, { limit: 20, status: "published" });
+      } catch (error) {
+        console.log('Category endpoint failed, trying fallback with category filter');
+        // Fallback to regular articles endpoint with category filter
+        return await articlesApi.getAll({ category: slug, limit: 20, status: "published" });
+      }
+    },
     enabled: !!slug,
+    retry: 1,
   });
 
   const categoryName = categoryData?.success ? categoryData.data.name : (slug?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'Category');
