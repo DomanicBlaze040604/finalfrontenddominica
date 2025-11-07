@@ -29,8 +29,16 @@ const AuthorsManager = () => {
     isActive: true,
   });
 
-  // Sample authors data - in production, fetch from API
-  const [authors, setAuthors] = useState([
+  // Fetch authors from API
+  const { data: authorsData, isLoading } = useQuery({
+    queryKey: ["authors"],
+    queryFn: () => authorsApi.getAll({ limit: 100 }),
+  });
+
+  const apiAuthors = authorsData?.success ? authorsData.data : [];
+
+  // Sample authors data as fallback
+  const [localAuthors, setLocalAuthors] = useState([
     {
       id: 1,
       name: "Maria Rodriguez",
@@ -69,6 +77,9 @@ const AuthorsManager = () => {
     }
   ]);
 
+  // Use API authors if available, otherwise use local authors
+  const authors = apiAuthors.length > 0 ? apiAuthors : localAuthors;
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -78,7 +89,7 @@ const AuthorsManager = () => {
     
     if (editingAuthor) {
       // Update existing author
-      setAuthors(prev => prev.map(author => 
+      setLocalAuthors(prev => prev.map(author => 
         author.id === editingAuthor.id 
           ? { 
               ...author, 
@@ -101,7 +112,7 @@ const AuthorsManager = () => {
         joinDate: new Date().toISOString().split('T')[0],
         avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face&sig=${Date.now()}`
       };
-      setAuthors(prev => [...prev, newAuthor]);
+      setLocalAuthors(prev => [...prev, newAuthor]);
       toast({
         title: "Author Created",
         description: `${formData.name} has been added successfully.`,
@@ -138,7 +149,7 @@ const AuthorsManager = () => {
   };
 
   const handleDelete = (authorId: number) => {
-    setAuthors(prev => prev.filter(author => author.id !== authorId));
+    setLocalAuthors(prev => prev.filter(author => author.id !== authorId));
     toast({
       title: "Author Deleted",
       description: "The author has been removed successfully.",

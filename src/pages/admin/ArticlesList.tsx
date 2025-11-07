@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Edit, Trash2, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const ArticlesList = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "articles"],
     queryFn: () => articlesApi.getAll({ limit: 50 }),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: articlesApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "articles"] });
+      toast({
+        title: "Article Deleted",
+        description: "The article has been deleted successfully.",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete article",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (articleId: string, articleTitle: string) => {
+    if (confirm(`Are you sure you want to delete "${articleTitle}"?`)) {
+      deleteMutation.mutate(articleId);
+    }
+  };
 
   const articles = data?.success ? data.data : [];
 
@@ -74,7 +103,13 @@ const ArticlesList = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" className="text-destructive hover-scale">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive hover-scale"
+                        onClick={() => handleDelete(article.id, article.title)}
+                        disabled={deleteMutation.isPending}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

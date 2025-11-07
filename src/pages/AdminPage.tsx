@@ -89,20 +89,47 @@ const AdminPage = () => {
       setIsUploading(true);
       try {
         const result = await uploadsApi.uploadFile(file);
-        if (result.success && result.url) {
-          setUploadedImageUrl(result.url);
+        console.log('Upload result:', result);
+        
+        // Handle different response formats
+        let imageUrl = '';
+        if (result) {
+          if (typeof result === 'string') {
+            imageUrl = result;
+          } else if (result.url) {
+            imageUrl = result.url;
+          } else if ((result as any).data?.url) {
+            imageUrl = (result as any).data.url;
+          }
+        }
+        
+        if (imageUrl) {
+          setUploadedImageUrl(imageUrl);
           toast({
             title: "Image Uploaded",
             description: "Cover image uploaded successfully!",
           });
+        } else {
+          throw new Error('No URL in response');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload error:", error);
-        toast({
-          title: "Upload Failed",
-          description: "Failed to upload image. You can still submit the article.",
-          variant: "destructive",
-        });
+        
+        // Use the preview URL as fallback (base64)
+        const previewUrl = reader.result as string;
+        if (previewUrl) {
+          setUploadedImageUrl(previewUrl);
+          toast({
+            title: "Using Local Preview",
+            description: "Image will be embedded in the article. For better performance, configure image upload on backend.",
+          });
+        } else {
+          toast({
+            title: "Upload Failed",
+            description: error.response?.data?.message || "Failed to upload image. You can still submit the article with text only.",
+            variant: "destructive",
+          });
+        }
       } finally {
         setIsUploading(false);
       }

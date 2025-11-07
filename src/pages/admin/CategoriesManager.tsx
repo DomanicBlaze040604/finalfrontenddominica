@@ -46,16 +46,74 @@ const CategoriesManager = () => {
     }
   };
 
+  const createMutation = useMutation({
+    mutationFn: categoriesApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Category Created",
+        description: `"${formData.name}" has been created successfully.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create category",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => categoriesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Category Updated",
+        description: `"${formData.name}" has been updated successfully.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update category",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: categoriesApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Category Deleted",
+        description: "The category has been deleted successfully.",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete category",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    toast({
-      title: editingCategory ? "Category Updated" : "Category Created",
-      description: `"${formData.name}" has been ${editingCategory ? 'updated' : 'created'} successfully.`,
-    });
-    
-    setIsDialogOpen(false);
-    resetForm();
+    if (editingCategory) {
+      updateMutation.mutate({
+        id: editingCategory.id,
+        data: formData
+      });
+    } else {
+      createMutation.mutate(formData);
+    }
   };
 
   const resetForm = () => {
@@ -259,11 +317,9 @@ const CategoriesManager = () => {
                           className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            toast({
-                              title: "Delete Category",
-                              description: `"${category.name}" would be deleted (demo mode)`,
-                              variant: "destructive",
-                            });
+                            if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
+                              deleteMutation.mutate(category.id);
+                            }
                           }}
                         >
                           <Trash2 className="h-4 w-4" />

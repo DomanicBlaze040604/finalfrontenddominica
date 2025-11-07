@@ -18,17 +18,17 @@ const Index = () => {
         <SearchBar />
         
         <div 
-          ref={featuredObserver.ref}
-          className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
-        >
-          <FeaturedStory />
-        </div>
-        
-        <div 
           ref={latestNewsObserver.ref}
           className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
         >
           <LatestNews />
+        </div>
+        
+        <div 
+          ref={featuredObserver.ref}
+          className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
+        >
+          <FeaturedStory />
         </div>
       </main>
       <Footer />
