@@ -35,9 +35,13 @@ export function BreakingNewsBanner() {
     return () => clearInterval(interval);
   }, [breakingNews.length]);
 
-  if (!isVisible || breakingNews.length === 0) return null;
+  // Early return if no breaking news
+  if (!isVisible || !breakingNews || breakingNews.length === 0) return null;
 
   const currentNews = breakingNews[currentIndex];
+  
+  // Safety check - if currentNews is undefined, return null
+  if (!currentNews) return null;
   
   const priorityColors = {
     high: "bg-destructive text-destructive-foreground",
