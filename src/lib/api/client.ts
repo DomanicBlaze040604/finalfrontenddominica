@@ -3,11 +3,12 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://web-production-af44.up.railway.app';
 
 console.log('🔗 API Base URL:', API_BASE_URL);
+console.log('⚠️ Note: If backend is down, the app will show errors. Check Railway deployment status.');
 
 // Create a typed API client that returns the response data directly
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 10000, // Reduced timeout to fail faster if backend is down
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
