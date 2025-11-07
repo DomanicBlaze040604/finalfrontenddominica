@@ -28,8 +28,18 @@ import RecycleBin from "./pages/admin/RecycleBin";
 import CategoryArticles from "./pages/admin/CategoryArticles";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import { ApiStatusChecker } from "./components/ApiStatusChecker";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with better error handling
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30000, // 30 seconds
+    },
+  },
+});
 
 const App = () => (
   <ErrorBoundary>
@@ -37,8 +47,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-        <Routes>
+        <ApiStatusChecker>
+          <BrowserRouter>
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
@@ -138,7 +149,8 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+        </ApiStatusChecker>
     </TooltipProvider>
   </QueryClientProvider>
   </ErrorBoundary>

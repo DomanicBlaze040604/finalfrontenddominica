@@ -17,13 +17,20 @@ export function BreakingNewsBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch active breaking news from API
-  const { data } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ["breaking-news", "active"],
     queryFn: () => breakingNewsApi.getActive(),
     refetchInterval: 60000, // Refetch every minute
+    retry: 1,
+    retryDelay: 1000,
   });
 
-  const breakingNews: BreakingNews[] = data?.success ? data.data : [];
+  // Log errors but don't crash
+  if (error) {
+    console.warn('Failed to load breaking news:', error);
+  }
+
+  const breakingNews: BreakingNews[] = data?.success && Array.isArray(data.data) ? data.data : [];
 
   useEffect(() => {
     if (breakingNews.length <= 1) return;

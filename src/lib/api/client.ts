@@ -16,22 +16,47 @@ const axiosInstance = axios.create({
   withCredentials: true, // Enable credentials for cookie-based auth
 });
 
-// Create a wrapper that properly types the response
+// Create a wrapper that properly types the response with error handling
 export const apiClient = {
   get: <T = unknown>(url: string, config?: unknown): Promise<T> => 
-    axiosInstance.get(url, config).then(response => response.data),
+    axiosInstance.get(url, config)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`GET ${url} failed:`, error.message);
+        throw error;
+      }),
   
   post: <T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T> => 
-    axiosInstance.post(url, data, config).then(response => response.data),
+    axiosInstance.post(url, data, config)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`POST ${url} failed:`, error.message);
+        throw error;
+      }),
   
   put: <T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T> => 
-    axiosInstance.put(url, data, config).then(response => response.data),
+    axiosInstance.put(url, data, config)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`PUT ${url} failed:`, error.message);
+        throw error;
+      }),
   
   delete: <T = unknown>(url: string, config?: unknown): Promise<T> => 
-    axiosInstance.delete(url, config).then(response => response.data),
+    axiosInstance.delete(url, config)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`DELETE ${url} failed:`, error.message);
+        throw error;
+      }),
   
   patch: <T = unknown>(url: string, data?: unknown, config?: unknown): Promise<T> => 
-    axiosInstance.patch(url, data, config).then(response => response.data),
+    axiosInstance.patch(url, data, config)
+      .then(response => response.data)
+      .catch(error => {
+        console.error(`PATCH ${url} failed:`, error.message);
+        throw error;
+      }),
 };
 
 // Request interceptor

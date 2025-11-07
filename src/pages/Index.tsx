@@ -14,12 +14,19 @@ const Index = () => {
   const featuredObserver = useIntersectionObserver({ threshold: 0.2 });
 
   // Fetch categories to display sections
-  const { data: categoriesData } = useQuery({
+  const { data: categoriesData, error: categoriesError } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getAll(),
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  const categories = categoriesData?.success ? categoriesData.data : [];
+  // Handle errors gracefully
+  if (categoriesError) {
+    console.error('Failed to load categories:', categoriesError);
+  }
+
+  const categories = categoriesData?.success && Array.isArray(categoriesData.data) ? categoriesData.data : [];
   // Show top 3 categories on homepage
   const topCategories = categories.slice(0, 3);
 
