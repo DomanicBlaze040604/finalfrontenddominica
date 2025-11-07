@@ -12,19 +12,19 @@ export const categoriesApi = {
     return apiClient.get(`/api/categories/${slug}`) as Promise<ApiResponse<Category>>;
   },
 
-  // Create new category
+  // Create new category (admin)
   create: async (data: Partial<Category>) => {
-    return apiClient.post('/api/categories', data) as Promise<ApiResponse<Category>>;
+    return apiClient.post('/api/admin/categories', data) as Promise<ApiResponse<Category>>;
   },
 
-  // Update category
+  // Update category (admin)
   update: async (id: string, data: Partial<Category>) => {
-    return apiClient.put(`/api/categories/${id}`, data) as Promise<ApiResponse<Category>>;
+    return apiClient.put(`/api/admin/categories/${id}`, data) as Promise<ApiResponse<Category>>;
   },
 
-  // Delete category
+  // Delete category (admin)
   delete: async (id: string) => {
-    return apiClient.delete(`/api/categories/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/api/admin/categories/${id}`) as Promise<ApiResponse<void>>;
   },
 };
 

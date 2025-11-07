@@ -25,14 +25,14 @@ export const settingsApi = {
     return apiClient.get('/api/settings') as Promise<ApiResponse<SiteSettings>>;
   },
 
-  // Update site settings
+  // Update site settings (admin)
   update: async (data: Partial<SiteSettings>) => {
-    return apiClient.put('/api/settings', data) as Promise<ApiResponse<SiteSettings>>;
+    return apiClient.put('/api/admin/settings', data) as Promise<ApiResponse<SiteSettings>>;
   },
 
-  // Update social media links
+  // Update social media links (admin)
   updateSocialMedia: async (data: SocialMediaLinks) => {
-    return apiClient.put('/api/settings/social-media', data) as Promise<ApiResponse<SiteSettings>>;
+    return apiClient.put('/api/admin/settings/social-media', data) as Promise<ApiResponse<SiteSettings>>;
   },
 };
 

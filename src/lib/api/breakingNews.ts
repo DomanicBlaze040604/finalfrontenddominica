@@ -34,24 +34,24 @@ export const breakingNewsApi = {
     return apiClient.get(`/api/breaking-news/${id}`) as Promise<ApiResponse<BreakingNews>>;
   },
 
-  // Create new breaking news
+  // Create new breaking news (admin)
   create: async (data: CreateBreakingNewsData) => {
-    return apiClient.post('/api/breaking-news', data) as Promise<ApiResponse<BreakingNews>>;
+    return apiClient.post('/api/admin/breaking-news', data) as Promise<ApiResponse<BreakingNews>>;
   },
 
-  // Update breaking news
+  // Update breaking news (admin)
   update: async (id: string, data: Partial<CreateBreakingNewsData>) => {
-    return apiClient.put(`/api/breaking-news/${id}`, data) as Promise<ApiResponse<BreakingNews>>;
+    return apiClient.put(`/api/admin/breaking-news/${id}`, data) as Promise<ApiResponse<BreakingNews>>;
   },
 
-  // Delete breaking news
+  // Delete breaking news (admin)
   delete: async (id: string) => {
-    return apiClient.delete(`/api/breaking-news/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/api/admin/breaking-news/${id}`) as Promise<ApiResponse<void>>;
   },
 
-  // Toggle active status
+  // Toggle active status (admin)
   toggleActive: async (id: string) => {
-    return apiClient.patch(`/api/breaking-news/${id}/toggle`) as Promise<ApiResponse<BreakingNews>>;
+    return apiClient.patch(`/api/admin/breaking-news/${id}/toggle`) as Promise<ApiResponse<BreakingNews>>;
   },
 };
 

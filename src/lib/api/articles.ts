@@ -31,19 +31,19 @@ export const articlesApi = {
     }) as Promise<ApiResponse<Article[]>>;
   },
 
-  // Create new article
+  // Create new article (admin)
   create: async (data: CreateArticleData) => {
-    return apiClient.post('/api/articles', data) as Promise<ApiResponse<Article>>;
+    return apiClient.post('/api/admin/articles', data) as Promise<ApiResponse<Article>>;
   },
 
-  // Update article
+  // Update article (admin)
   update: async (id: string, data: Partial<CreateArticleData>) => {
-    return apiClient.put(`/api/articles/${id}`, data) as Promise<ApiResponse<Article>>;
+    return apiClient.put(`/api/admin/articles/${id}`, data) as Promise<ApiResponse<Article>>;
   },
 
-  // Delete article
+  // Delete article (admin)
   delete: async (id: string) => {
-    return apiClient.delete(`/api/articles/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/api/admin/articles/${id}`) as Promise<ApiResponse<void>>;
   },
 
   // Increment view count

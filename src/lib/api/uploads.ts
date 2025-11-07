@@ -1,7 +1,19 @@
 import apiClient from './client';
 
 export const uploadsApi = {
-  // Upload a file
+  // Upload an image (admin endpoint)
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return apiClient.post('/api/admin/images/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }) as Promise<{ success: boolean; data: { url: string } }>;
+  },
+
+  // Upload a file (legacy support)
   uploadFile: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);

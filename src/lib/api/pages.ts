@@ -39,19 +39,19 @@ export const pagesApi = {
     return apiClient.get<{ success: boolean; data: StaticPage }>(`/api/pages/${slug}`);
   },
 
-  // Create new page
+  // Create new page (admin)
   create: async (data: CreatePageData) => {
-    return apiClient.post<{ success: boolean; data: StaticPage }>('/api/pages', data);
+    return apiClient.post<{ success: boolean; data: StaticPage }>('/api/admin/pages', data);
   },
 
-  // Update page
+  // Update page (admin)
   update: async (id: string, data: Partial<CreatePageData>) => {
-    return apiClient.put<{ success: boolean; data: StaticPage }>(`/api/pages/${id}`, data);
+    return apiClient.put<{ success: boolean; data: StaticPage }>(`/api/admin/pages/${id}`, data);
   },
 
-  // Delete page
+  // Delete page (admin)
   delete: async (id: string) => {
-    return apiClient.delete<{ success: boolean }>(`/api/pages/${id}`);
+    return apiClient.delete<{ success: boolean }>(`/api/admin/pages/${id}`);
   },
 };
 

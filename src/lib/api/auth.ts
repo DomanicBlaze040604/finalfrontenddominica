@@ -27,8 +27,8 @@ export interface User {
 }
 
 class AuthService {
-  private tokenKey = 'auth_token';
-  private userKey = 'auth_user';
+  private tokenKey = 'token';
+  private userKey = 'user';
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {

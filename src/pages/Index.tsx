@@ -1,14 +1,27 @@
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useQuery } from "@tanstack/react-query";
+import { categoriesApi } from "@/lib/api";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import FeaturedStory from "@/components/FeaturedStory";
 import LatestNews from "@/components/LatestNews";
+import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import { BreakingNewsBanner } from "@/components/BreakingNewsBanner";
 
 const Index = () => {
   const latestNewsObserver = useIntersectionObserver({ threshold: 0.2 });
   const featuredObserver = useIntersectionObserver({ threshold: 0.2 });
+
+  // Fetch categories to display sections
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesApi.getAll(),
+  });
+
+  const categories = categoriesData?.success ? categoriesData.data : [];
+  // Show top 3 categories on homepage
+  const topCategories = categories.slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -30,6 +43,17 @@ const Index = () => {
         >
           <FeaturedStory />
         </div>
+
+        {/* Category Sections */}
+        {topCategories.map((category) => (
+          <CategorySection
+            key={category.id}
+            categorySlug={category.slug}
+            categoryName={category.name}
+            categoryColor={category.color}
+            limit={4}
+          />
+        ))}
       </main>
       <Footer />
     </div>

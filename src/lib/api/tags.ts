@@ -30,19 +30,19 @@ export const tagsApi = {
     return apiClient.get(`/api/tags/${id}`) as Promise<ApiResponse<Tag>>;
   },
 
-  // Create new tag
+  // Create new tag (admin)
   create: async (data: CreateTagData) => {
-    return apiClient.post('/api/tags', data) as Promise<ApiResponse<Tag>>;
+    return apiClient.post('/api/admin/tags', data) as Promise<ApiResponse<Tag>>;
   },
 
-  // Update tag
+  // Update tag (admin)
   update: async (id: string, data: Partial<CreateTagData>) => {
-    return apiClient.put(`/api/tags/${id}`, data) as Promise<ApiResponse<Tag>>;
+    return apiClient.put(`/api/admin/tags/${id}`, data) as Promise<ApiResponse<Tag>>;
   },
 
-  // Delete tag
+  // Delete tag (admin)
   delete: async (id: string) => {
-    return apiClient.delete(`/api/tags/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/api/admin/tags/${id}`) as Promise<ApiResponse<void>>;
   },
 };
 

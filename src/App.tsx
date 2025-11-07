@@ -24,6 +24,8 @@ import MediaLibrary from "./pages/admin/MediaLibrary";
 import ScheduleManager from "./pages/admin/ScheduleManager";
 import SiteSettings from "./pages/admin/SiteSettings";
 import Analytics from "./pages/admin/Analytics";
+import RecycleBin from "./pages/admin/RecycleBin";
+import CategoryArticles from "./pages/admin/CategoryArticles";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -77,6 +79,11 @@ const App = () => (
               <CategoriesManager />
             </ProtectedRoute>
           } />
+          <Route path="/admin/categories/:slug/articles" element={
+            <ProtectedRoute>
+              <CategoryArticles />
+            </ProtectedRoute>
+          } />
           <Route path="/admin/pages" element={
             <ProtectedRoute>
               <PagesManager />
@@ -120,6 +127,11 @@ const App = () => (
           <Route path="/admin/analytics" element={
             <ProtectedRoute>
               <Analytics />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/recycle-bin" element={
+            <ProtectedRoute>
+              <RecycleBin />
             </ProtectedRoute>
           } />
           
