@@ -31,6 +31,7 @@ const SearchBar = () => {
           placeholder="Search articles, news, and stories..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          autoComplete="off"
           className="pl-10 pr-20 h-12 text-base"
         />
         {searchQuery && (
