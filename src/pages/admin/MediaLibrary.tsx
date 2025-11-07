@@ -1,6 +1,9 @@
 import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { mediaApi } from "@/lib/api";
 import { useDropzone } from "react-dropzone";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,100 +14,72 @@ import { useToast } from "@/hooks/use-toast";
 
 const MediaLibrary = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Sample media data - in production, fetch from API
-  const [mediaFiles, setMediaFiles] = useState([
-    {
-      id: 1,
-      name: "dominica-landscape.jpg",
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-      type: "image",
-      size: "2.4 MB",
-      dimensions: "1920x1080",
-      uploadedAt: "2024-11-01",
-      alt: "Beautiful landscape of Dominica"
+  // Fetch media from API
+  const { data, isLoading } = useQuery({
+    queryKey: ["media"],
+    queryFn: () => mediaApi.getAll(),
+  });
+
+  const mediaFiles = data?.success ? data.data : [];
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: mediaApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      toast({
+        title: "Media Deleted",
+        description: "The media file has been deleted successfully.",
+        variant: "destructive",
+      });
     },
-    {
-      id: 2,
-      name: "government-building.jpg",
-      url: "https://images.unsplash.com/photo-1555848962-6e79363ec07f?w=800&h=600&fit=crop",
-      type: "image",
-      size: "1.8 MB",
-      dimensions: "1600x900",
-      uploadedAt: "2024-11-02",
-      alt: "Government building in Roseau"
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete media",
+        variant: "destructive",
+      });
     },
-    {
-      id: 3,
-      name: "sports-event.jpg",
-      url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop",
-      type: "image",
-      size: "3.1 MB",
-      dimensions: "2048x1365",
-      uploadedAt: "2024-11-03",
-      alt: "Local sports event"
-    },
-    {
-      id: 4,
-      name: "weather-storm.jpg",
-      url: "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=800&h=600&fit=crop",
-      type: "image",
-      size: "2.7 MB",
-      dimensions: "1800x1200",
-      uploadedAt: "2024-11-04",
-      alt: "Storm clouds over the Caribbean"
-    },
-    {
-      id: 5,
-      name: "tourism-beach.jpg",
-      url: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop",
-      type: "image",
-      size: "2.2 MB",
-      dimensions: "1920x1280",
-      uploadedAt: "2024-11-05",
-      alt: "Beautiful beach in Dominica"
-    },
-    {
-      id: 6,
-      name: "cultural-festival.jpg",
-      url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&h=600&fit=crop",
-      type: "image",
-      size: "2.9 MB",
-      dimensions: "2000x1333",
-      uploadedAt: "2024-11-06",
-      alt: "Cultural festival celebration"
-    }
-  ]);
+  });
+
+
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setIsUploading(true);
     
-    // Simulate upload process
-    for (const file of acceptedFiles) {
-      const newMedia = {
-        id: Date.now() + Math.random(),
-        name: file.name,
-        url: URL.createObjectURL(file),
-        type: file.type.startsWith('image/') ? 'image' : 'file',
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        dimensions: "Unknown", // Would be determined after upload
-        uploadedAt: new Date().toISOString().split('T')[0],
-        alt: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ')
-      };
+    try {
+      // Upload files to API
+      for (const file of acceptedFiles) {
+        try {
+          await mediaApi.upload(file);
+        } catch (error) {
+          console.error('Upload error:', error);
+        }
+      }
       
-      setMediaFiles(prev => [newMedia, ...prev]);
+      // Refresh media list
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      
+      toast({
+        title: "Upload Complete",
+        description: `${acceptedFiles.length} file(s) uploaded successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Some files failed to upload. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
-    
-    setIsUploading(false);
-    toast({
-      title: "Upload Complete",
-      description: `${acceptedFiles.length} file(s) uploaded successfully.`,
-    });
-  }, [toast]);
+  }, [toast, queryClient]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -114,13 +89,8 @@ const MediaLibrary = () => {
     multiple: true
   });
 
-  const handleDelete = (mediaId: number) => {
-    setMediaFiles(prev => prev.filter(media => media.id !== mediaId));
-    toast({
-      title: "Media Deleted",
-      description: "The media file has been deleted successfully.",
-      variant: "destructive",
-    });
+  const handleDelete = (mediaId: string) => {
+    deleteMutation.mutate(mediaId);
   };
 
   const handleCopyUrl = (url: string) => {

@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { pagesApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const PagesManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPage, setEditingPage] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -26,64 +30,73 @@ const PagesManager = () => {
     showInFooter: true,
   });
 
-  // Sample static pages - in production, fetch from API
-  const [pages, setPages] = useState([
-    { 
-      id: 1, 
-      title: "About Us", 
-      slug: "about", 
-      content: "<h2>About Dominica News</h2><p>Your trusted source for news and information about Dominica and the Caribbean region.</p>",
-      metaDescription: "Learn about Dominica News, your trusted source for Caribbean news.",
-      isPublished: true,
-      showInFooter: true,
-      updatedAt: "2025-11-05",
-      createdAt: "2025-10-01"
+  // Fetch pages from API
+  const { data, isLoading } = useQuery({
+    queryKey: ["pages"],
+    queryFn: () => pagesApi.getAll(),
+  });
+
+  const pages = data?.success ? data.data : [];
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: pagesApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pages"] });
+      toast({
+        title: "Page Created",
+        description: `"${formData.title}" has been created successfully.`,
+      });
+      resetForm();
     },
-    { 
-      id: 2, 
-      title: "Contact Us", 
-      slug: "contact", 
-      content: "<h2>Get in Touch</h2><p>Contact our editorial team for news tips, feedback, or inquiries.</p><p><strong>Email:</strong> news@dominicanews.com<br><strong>Phone:</strong> +1-767-XXX-XXXX</p>",
-      metaDescription: "Contact Dominica News editorial team for news tips and inquiries.",
-      isPublished: true,
-      showInFooter: true,
-      updatedAt: "2025-11-04",
-      createdAt: "2025-10-01"
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create page",
+        variant: "destructive",
+      });
     },
-    { 
-      id: 3, 
-      title: "Privacy Policy", 
-      slug: "privacy", 
-      content: "<h2>Privacy Policy</h2><p>This privacy policy explains how we collect, use, and protect your personal information.</p>",
-      metaDescription: "Dominica News privacy policy and data protection information.",
-      isPublished: true,
-      showInFooter: true,
-      updatedAt: "2025-11-03",
-      createdAt: "2025-10-01"
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => pagesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pages"] });
+      toast({
+        title: "Page Updated",
+        description: `"${formData.title}" has been updated successfully.`,
+      });
+      resetForm();
     },
-    { 
-      id: 4, 
-      title: "Terms of Service", 
-      slug: "terms", 
-      content: "<h2>Terms of Service</h2><p>By using our website, you agree to these terms and conditions.</p>",
-      metaDescription: "Dominica News terms of service and usage conditions.",
-      isPublished: true,
-      showInFooter: true,
-      updatedAt: "2025-11-03",
-      createdAt: "2025-10-01"
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update page",
+        variant: "destructive",
+      });
     },
-    { 
-      id: 5, 
-      title: "Editorial Team", 
-      slug: "editorial-team", 
-      content: "<h2>Our Editorial Team</h2><p>Meet the dedicated journalists and editors who bring you the latest news from Dominica.</p>",
-      metaDescription: "Meet the Dominica News editorial team and journalists.",
-      isPublished: true,
-      showInFooter: false,
-      updatedAt: "2025-11-02",
-      createdAt: "2025-10-01"
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: pagesApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pages"] });
+      toast({
+        title: "Page Deleted",
+        description: "The page has been deleted successfully.",
+        variant: "destructive",
+      });
     },
-  ]);
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete page",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -101,32 +114,13 @@ const PagesManager = () => {
     e.preventDefault();
     
     if (editingPage) {
-      // Update existing page
-      setPages(prev => prev.map(page => 
-        page.id === editingPage.id 
-          ? { ...page, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : page
-      ));
-      toast({
-        title: "Page Updated",
-        description: `"${formData.title}" has been updated successfully.`,
+      updateMutation.mutate({
+        id: editingPage.id,
+        data: formData
       });
     } else {
-      // Create new page
-      const newPage = {
-        id: Date.now(),
-        ...formData,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
-      };
-      setPages(prev => [...prev, newPage]);
-      toast({
-        title: "Page Created",
-        description: `"${formData.title}" has been created successfully.`,
-      });
+      createMutation.mutate(formData);
     }
-    
-    resetForm();
   };
 
   const resetForm = () => {
@@ -155,13 +149,8 @@ const PagesManager = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (pageId: number) => {
-    setPages(prev => prev.filter(page => page.id !== pageId));
-    toast({
-      title: "Page Deleted",
-      description: "The page has been deleted successfully.",
-      variant: "destructive",
-    });
+  const handleDelete = (pageId: string) => {
+    deleteMutation.mutate(pageId);
   };
 
   return (
@@ -294,9 +283,16 @@ const PagesManager = () => {
             </Dialog>
           </div>
 
-          <div className="grid gap-4">
-            {pages.length > 0 ? (
-              pages.map((page) => (
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {pages.length > 0 ? (
+                pages.map((page) => (
                 <Card key={page.id} className="interactive-card hover-lift group transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -389,7 +385,8 @@ const PagesManager = () => {
                 </Button>
               </Card>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </AdminLayout>
     );

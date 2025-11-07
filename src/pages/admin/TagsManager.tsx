@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { tagsApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const TagsManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   
@@ -22,54 +25,73 @@ const TagsManager = () => {
     color: "#3B82F6",
   });
 
-  // Sample tags data - in production, fetch from API
-  const [tags, setTags] = useState([
-    {
-      id: 1,
-      name: "Breaking News",
-      slug: "breaking-news",
-      description: "Urgent and important news stories",
-      color: "#DC2626",
-      usageCount: 45,
-      createdAt: "2024-01-15"
+  // Fetch tags from API
+  const { data, isLoading } = useQuery({
+    queryKey: ["tags"],
+    queryFn: () => tagsApi.getAll(),
+  });
+
+  const tags = data?.success ? data.data : [];
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: tagsApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      toast({
+        title: "Tag Created",
+        description: `"${formData.name}" has been created successfully.`,
+      });
+      resetForm();
     },
-    {
-      id: 2,
-      name: "Politics",
-      slug: "politics",
-      description: "Political news and government affairs",
-      color: "#7C3AED",
-      usageCount: 32,
-      createdAt: "2024-01-20"
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create tag",
+        variant: "destructive",
+      });
     },
-    {
-      id: 3,
-      name: "Weather Alert",
-      slug: "weather-alert",
-      description: "Weather warnings and updates",
-      color: "#F59E0B",
-      usageCount: 28,
-      createdAt: "2024-02-01"
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => tagsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      toast({
+        title: "Tag Updated",
+        description: `"${formData.name}" has been updated successfully.`,
+      });
+      resetForm();
     },
-    {
-      id: 4,
-      name: "Sports",
-      slug: "sports",
-      description: "Sports news and events",
-      color: "#10B981",
-      usageCount: 22,
-      createdAt: "2024-02-10"
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update tag",
+        variant: "destructive",
+      });
     },
-    {
-      id: 5,
-      name: "Tourism",
-      slug: "tourism",
-      description: "Tourism and travel related news",
-      color: "#06B6D4",
-      usageCount: 18,
-      createdAt: "2024-02-15"
-    }
-  ]);
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: tagsApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      toast({
+        title: "Tag Deleted",
+        description: "The tag has been deleted successfully.",
+        variant: "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete tag",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -87,32 +109,13 @@ const TagsManager = () => {
     e.preventDefault();
     
     if (editingTag) {
-      // Update existing tag
-      setTags(prev => prev.map(tag => 
-        tag.id === editingTag.id 
-          ? { ...tag, ...formData }
-          : tag
-      ));
-      toast({
-        title: "Tag Updated",
-        description: `"${formData.name}" has been updated successfully.`,
+      updateMutation.mutate({
+        id: editingTag.id,
+        data: formData
       });
     } else {
-      // Create new tag
-      const newTag = {
-        id: Date.now(),
-        ...formData,
-        usageCount: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setTags(prev => [...prev, newTag]);
-      toast({
-        title: "Tag Created",
-        description: `"${formData.name}" has been created successfully.`,
-      });
+      createMutation.mutate(formData);
     }
-    
-    resetForm();
   };
 
   const resetForm = () => {
@@ -137,13 +140,8 @@ const TagsManager = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (tagId: number) => {
-    setTags(prev => prev.filter(tag => tag.id !== tagId));
-    toast({
-      title: "Tag Deleted",
-      description: "The tag has been deleted successfully.",
-      variant: "destructive",
-    });
+  const handleDelete = (tagId: string) => {
+    deleteMutation.mutate(tagId);
   };
 
   // Sort tags by usage count

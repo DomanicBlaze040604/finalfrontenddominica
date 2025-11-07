@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { settingsApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,14 +11,54 @@ import { useToast } from "@/hooks/use-toast";
 
 const SocialMediaManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [socialLinks, setSocialLinks] = useState({
-    facebook: "https://facebook.com/dominicanews",
-    twitter: "https://twitter.com/dominicanews",
-    instagram: "https://instagram.com/dominicanews",
-    youtube: "https://youtube.com/@dominicanews",
-    linkedin: "https://linkedin.com/company/dominica-news",
-    email: "contact@dominicanews.dm",
+    facebook: "",
+    twitter: "",
+    instagram: "",
+    youtube: "",
+    linkedin: "",
+    email: "",
   });
+
+  // Fetch settings from API
+  const { data, isLoading } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => settingsApi.get(),
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: settingsApi.updateSocialMedia,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      toast({
+        title: "Social Media Links Updated",
+        description: "Your social media links have been saved successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update social media links",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Populate form when data is loaded
+  useEffect(() => {
+    if (data?.success && data.data.socialMedia) {
+      setSocialLinks({
+        facebook: data.data.socialMedia.facebook || "",
+        twitter: data.data.socialMedia.twitter || "",
+        instagram: data.data.socialMedia.instagram || "",
+        youtube: data.data.socialMedia.youtube || "",
+        linkedin: data.data.socialMedia.linkedin || "",
+        email: data.data.socialMedia.email || "",
+      });
+    }
+  }, [data]);
 
   const socialPlatforms = [
     {
@@ -65,10 +107,20 @@ const SocialMediaManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Social Media Links Updated",
-      description: "Your social media links have been saved successfully.",
-    });
+    updateMutation.mutate(socialLinks);
+  };
+
+  const handleReset = () => {
+    if (data?.success && data.data.socialMedia) {
+      setSocialLinks({
+        facebook: data.data.socialMedia.facebook || "",
+        twitter: data.data.socialMedia.twitter || "",
+        instagram: data.data.socialMedia.instagram || "",
+        youtube: data.data.socialMedia.youtube || "",
+        linkedin: data.data.socialMedia.linkedin || "",
+        email: data.data.socialMedia.email || "",
+      });
+    }
   };
 
   const handleInputChange = (platform: string, value: string) => {
@@ -149,11 +201,11 @@ const SocialMediaManager = () => {
             })}
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>
-              <Button type="submit">
-                Save Changes
+              <Button type="submit" disabled={updateMutation.isPending || isLoading}>
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>
