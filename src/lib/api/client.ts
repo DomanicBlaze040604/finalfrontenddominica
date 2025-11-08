@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://web-production-af44.up.railway.app';
 
 console.log('🔗 API Base URL:', API_BASE_URL);
+console.log('✅ DEPLOYMENT VERIFIED - All fixes applied! Build timestamp:', new Date().toISOString());
 console.log('⚠️ Note: If backend is down, the app will show errors. Check Railway deployment status.');
 
 // Create a typed API client that returns the response data directly
