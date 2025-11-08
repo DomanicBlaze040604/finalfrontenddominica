@@ -159,9 +159,11 @@ const BreakingNewsManager = () => {
                     <Label htmlFor="title">Alert Title *</Label>
                     <Input
                       id="title"
+                      name="title"
                       value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="e.g., Tropical Storm Warning Issued"
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -170,9 +172,11 @@ const BreakingNewsManager = () => {
                     <Label htmlFor="link">Link to Article (optional)</Label>
                     <Input
                       id="link"
+                      name="link"
                       value={formData.link}
                       onChange={(e) => setFormData(prev => ({ ...prev, link: e.target.value }))}
                       placeholder="/article/slug or full URL"
+                      autoComplete="url"
                     />
                   </div>
 
