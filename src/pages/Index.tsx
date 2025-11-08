@@ -14,10 +14,10 @@ const Index = () => {
   const featuredObserver = useIntersectionObserver({ threshold: 0.2 });
 
   // Fetch categories to display sections
-  const { data: categoriesData, error: categoriesError } = useQuery({
+  const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getAll(),
-    retry: 3,
+    retry: 1,
     retryDelay: 1000,
   });
 
@@ -26,7 +26,21 @@ const Index = () => {
     console.error('Failed to load categories:', categoriesError);
   }
 
-  const categories = categoriesData?.success && Array.isArray(categoriesData.data) ? categoriesData.data : [];
+  // Safely extract categories with fallback
+  let categories: any[] = [];
+  try {
+    if (categoriesData && typeof categoriesData === 'object') {
+      if ('success' in categoriesData && categoriesData.success && 'data' in categoriesData) {
+        categories = Array.isArray(categoriesData.data) ? categoriesData.data : [];
+      } else if (Array.isArray(categoriesData)) {
+        categories = categoriesData;
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing categories:', error);
+    categories = [];
+  }
+  
   // Show top 3 categories on homepage
   const topCategories = categories.slice(0, 3);
 
@@ -52,15 +66,21 @@ const Index = () => {
         </div>
 
         {/* Category Sections */}
-        {topCategories.map((category) => (
-          <CategorySection
-            key={category.id}
-            categorySlug={category.slug}
-            categoryName={category.name}
-            categoryColor={category.color}
-            limit={4}
-          />
-        ))}
+        {topCategories && topCategories.length > 0 && topCategories.map((category) => {
+          if (!category || !category.id || !category.slug) {
+            console.warn('Invalid category data:', category);
+            return null;
+          }
+          return (
+            <CategorySection
+              key={category.id}
+              categorySlug={category.slug}
+              categoryName={category.name || 'Uncategorized'}
+              categoryColor={category.color || '#000000'}
+              limit={4}
+            />
+          );
+        })}
       </main>
       <Footer />
     </div>
