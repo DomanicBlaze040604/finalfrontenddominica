@@ -103,7 +103,7 @@ const CategorySection = ({
                   </p>
                 )}
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  {article.author && (
+                  {article.author && article.author.name && (
                     <span className="flex items-center gap-1">
                       <User className="h-3 w-3" />
                       {article.author.name}
@@ -112,9 +112,15 @@ const CategorySection = ({
                   {article.publishedAt && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(article.publishedAt), {
-                        addSuffix: true,
-                      })}
+                      {(() => {
+                        try {
+                          return formatDistanceToNow(new Date(article.publishedAt), {
+                            addSuffix: true,
+                          });
+                        } catch (e) {
+                          return new Date(article.publishedAt).toLocaleDateString();
+                        }
+                      })()}
                     </span>
                   )}
                 </div>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
+import SafeIndex from "./pages/SafeIndex";
 import ArticlePage from "./pages/ArticlePage";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
@@ -51,7 +52,8 @@ const App = () => (
         <ApiStatusChecker>
           <BrowserRouter>
           <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<SafeIndex />} />
+          <Route path="/old" element={<Index />} />
           <Route path="/diagnostic" element={<DiagnosticPage />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
