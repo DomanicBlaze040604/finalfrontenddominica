@@ -53,8 +53,8 @@ const App = () => (
         <ApiStatusChecker>
           <BrowserRouter>
           <Routes>
-          <Route path="/" element={<SafeIndex />} />
-          <Route path="/old" element={<Index />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/safe" element={<SafeIndex />} />
           <Route path="/diagnostic" element={<DiagnosticPage />} />
           <Route path="/component-test" element={<ComponentDiagnostic />} />
           <Route path="/search" element={<SearchResults />} />
