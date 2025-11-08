@@ -23,6 +23,7 @@ import {
   Image,
   Tag,
   Calendar,
+  Trash2,
 } from "lucide-react";
 
 const mainItems = [
@@ -44,6 +45,7 @@ const settingsItems = [
   { title: "Site Settings", url: "/admin/settings", icon: Settings },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Schedule", url: "/admin/schedule", icon: Calendar },
+  { title: "Recycle Bin", url: "/admin/recycle-bin", icon: Trash2 },
 ];
 
 export function AdminSidebar() {
