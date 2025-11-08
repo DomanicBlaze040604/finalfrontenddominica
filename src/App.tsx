@@ -29,6 +29,7 @@ import CategoryArticles from "./pages/admin/CategoryArticles";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
+import DiagnosticPage from "./pages/DiagnosticPage";
 
 // Configure QueryClient with better error handling
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ const App = () => (
           <BrowserRouter>
           <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/diagnostic" element={<DiagnosticPage />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
