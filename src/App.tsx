@@ -31,6 +31,7 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
 import DiagnosticPage from "./pages/DiagnosticPage";
+import ComponentDiagnostic from "./pages/ComponentDiagnostic";
 
 // Configure QueryClient with better error handling
 const queryClient = new QueryClient({
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/" element={<SafeIndex />} />
           <Route path="/old" element={<Index />} />
           <Route path="/diagnostic" element={<DiagnosticPage />} />
+          <Route path="/component-test" element={<ComponentDiagnostic />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
