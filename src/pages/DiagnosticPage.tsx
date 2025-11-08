@@ -25,7 +25,7 @@ const DiagnosticPage = () => {
       setCurrentTest('Test 2: Backend Health Check');
       addTest('Backend Health Check', 'running');
       try {
-        const health = await apiClient.get('/api/health');
+        const health = await apiClient.get('/api/health') as any;
         addTest('Backend Health Check', 'pass', health);
       } catch (error: any) {
         addTest('Backend Health Check', 'fail', { 
@@ -39,8 +39,8 @@ const DiagnosticPage = () => {
       setCurrentTest('Test 3: Categories API');
       addTest('Categories API', 'running');
       try {
-        const categories = await apiClient.get('/api/categories');
-        addTest('Categories API', 'pass', { count: categories.data?.length });
+        const categories = await apiClient.get('/api/categories') as any;
+        addTest('Categories API', 'pass', { count: categories?.data?.length || 0 });
       } catch (error: any) {
         addTest('Categories API', 'fail', { 
           message: error.message,
@@ -52,8 +52,8 @@ const DiagnosticPage = () => {
       setCurrentTest('Test 4: Articles API');
       addTest('Articles API', 'running');
       try {
-        const articles = await apiClient.get('/api/articles?limit=5&status=published');
-        addTest('Articles API', 'pass', { count: articles.data?.length });
+        const articles = await apiClient.get('/api/articles?limit=5&status=published') as any;
+        addTest('Articles API', 'pass', { count: articles?.data?.length || 0 });
       } catch (error: any) {
         addTest('Articles API', 'fail', { 
           message: error.message,
