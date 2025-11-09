@@ -7,6 +7,7 @@ export interface RecycleBinItem {
   title: string;
   deletedAt: string;
   deletedBy?: string;
+  expiresAt: string;
   originalData: any;
 }
 

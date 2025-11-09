@@ -190,20 +190,31 @@ const RecycleBin = () => {
                             <Badge className={getTypeColor(item.type)}>
                               <span className="flex items-center gap-1">
                                 {getTypeIcon(item.type)}
-                                {item.type.replace('-', ' ')}
+                                {item.type.charAt(0).toUpperCase() + item.type.slice(1).replace('-', ' ')}
                               </span>
                             </Badge>
                           </div>
-                          <CardTitle className="text-xl">{item.title}</CardTitle>
-                          <CardDescription className="mt-2">
-                            Deleted {(() => {
-                              try {
-                                return formatDistanceToNow(new Date(item.deletedAt), { addSuffix: true });
-                              } catch (e) {
-                                return new Date(item.deletedAt).toLocaleDateString();
-                              }
-                            })()}
-                            {item.deletedBy && ` by ${item.deletedBy}`}
+                          <CardTitle className="text-xl">{item.title || 'Untitled'}</CardTitle>
+                          <CardDescription className="mt-2 space-y-1">
+                            <div>
+                              Deleted {(() => {
+                                try {
+                                  return formatDistanceToNow(new Date(item.deletedAt), { addSuffix: true });
+                                } catch (e) {
+                                  return new Date(item.deletedAt).toLocaleDateString();
+                                }
+                              })()}
+                              {item.deletedBy && ` by ${item.deletedBy}`}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Expires {(() => {
+                                try {
+                                  return formatDistanceToNow(new Date(item.expiresAt), { addSuffix: true });
+                                } catch (e) {
+                                  return new Date(item.expiresAt).toLocaleDateString();
+                                }
+                              })()}
+                            </div>
                           </CardDescription>
                         </div>
                         <div className="flex gap-2">
