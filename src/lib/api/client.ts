@@ -93,10 +93,13 @@ axiosInstance.interceptors.response.use(
     
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Only redirect to login if not already on login page
-      if (!window.location.pathname.includes('/admin/login')) {
+      // Don't redirect if on diagnostic or public pages
+      const publicPaths = ['/diagnostic', '/component-test', '/admin/login', '/register', '/'];
+      const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
+      
+      if (!isPublicPath) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/admin/login';
       }
     }
