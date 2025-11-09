@@ -194,7 +194,13 @@ const RecycleBin = () => {
                           </div>
                           <CardTitle className="text-xl">{item.title}</CardTitle>
                           <CardDescription className="mt-2">
-                            Deleted {formatDistanceToNow(new Date(item.deletedAt), { addSuffix: true })}
+                            Deleted {(() => {
+                              try {
+                                return formatDistanceToNow(new Date(item.deletedAt), { addSuffix: true });
+                              } catch (e) {
+                                return new Date(item.deletedAt).toLocaleDateString();
+                              }
+                            })()}
                             {item.deletedBy && ` by ${item.deletedBy}`}
                           </CardDescription>
                         </div>

@@ -8,6 +8,7 @@ import LatestNews from "@/components/LatestNews";
 import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import { BreakingNewsBanner } from "@/components/BreakingNewsBanner";
+import { SafeComponent } from "@/components/SafeComponent";
 
 const Index = () => {
   const latestNewsObserver = useIntersectionObserver({ threshold: 0.2 });
@@ -46,23 +47,35 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <BreakingNewsBanner />
-      <Header />
+      <SafeComponent componentName="BreakingNewsBanner">
+        <BreakingNewsBanner />
+      </SafeComponent>
+      
+      <SafeComponent componentName="Header">
+        <Header />
+      </SafeComponent>
+      
       <main className="flex-1">
-        <SearchBar />
+        <SafeComponent componentName="SearchBar">
+          <SearchBar />
+        </SafeComponent>
         
         <div 
           ref={latestNewsObserver.ref}
           className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
         >
-          <LatestNews />
+          <SafeComponent componentName="LatestNews">
+            <LatestNews />
+          </SafeComponent>
         </div>
         
         <div 
           ref={featuredObserver.ref}
           className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
         >
-          <FeaturedStory />
+          <SafeComponent componentName="FeaturedStory">
+            <FeaturedStory />
+          </SafeComponent>
         </div>
 
         {/* Category Sections */}
@@ -72,17 +85,21 @@ const Index = () => {
             return null;
           }
           return (
-            <CategorySection
-              key={category.id}
-              categorySlug={category.slug}
-              categoryName={category.name || 'Uncategorized'}
-              categoryColor={category.color || '#000000'}
-              limit={4}
-            />
+            <SafeComponent key={category.id} componentName={`CategorySection-${category.slug}`}>
+              <CategorySection
+                categorySlug={category.slug}
+                categoryName={category.name || 'Uncategorized'}
+                categoryColor={category.color || '#000000'}
+                limit={4}
+              />
+            </SafeComponent>
           );
         })}
       </main>
-      <Footer />
+      
+      <SafeComponent componentName="Footer">
+        <Footer />
+      </SafeComponent>
     </div>
   );
 };
