@@ -28,12 +28,22 @@ const CategoryPageContent = () => {
     queryKey: ["articles", "category", slug],
     queryFn: async () => {
       try {
+        console.log('Fetching articles for category:', slug);
         // Try the category-specific endpoint first
-        return await articlesApi.getByCategory(slug!, { limit: 20, status: "published" });
+        const result = await articlesApi.getByCategory(slug!, { limit: 20, status: "published" });
+        console.log('Category articles result:', result);
+        return result;
       } catch (error) {
-        console.log('Category endpoint failed, trying fallback with category filter');
+        console.error('Category endpoint failed:', error);
         // Fallback to regular articles endpoint with category filter
-        return await articlesApi.getAll({ category: slug, limit: 20, status: "published" });
+        try {
+          const fallback = await articlesApi.getAll({ category: slug, limit: 20, status: "published" });
+          console.log('Fallback result:', fallback);
+          return fallback;
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+          throw fallbackError;
+        }
       }
     },
     enabled: !!slug,
@@ -79,7 +89,10 @@ const CategoryPageContent = () => {
     );
   }
 
-  const articles = articlesData.data;
+  // Handle different response structures
+  const articles = Array.isArray(articlesData.data) 
+    ? articlesData.data 
+    : (articlesData.data as any)?.articles || [];
 
   return (
     <div className="min-h-screen flex flex-col">
