@@ -61,14 +61,7 @@ const App = () => (
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           
-          {/* Static Pages */}
-          <Route path="/about" element={<StaticPage />} />
-          <Route path="/contact" element={<StaticPage />} />
-          <Route path="/privacy" element={<StaticPage />} />
-          <Route path="/terms" element={<StaticPage />} />
-          <Route path="/:slug" element={<StaticPage />} />
-          
-          {/* Auth Routes */}
+          {/* Auth Routes - MUST BE BEFORE CATCH-ALL */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin" element={
@@ -152,7 +145,14 @@ const App = () => (
             </ProtectedRoute>
           } />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Static Pages - MUST BE AFTER ALL SPECIFIC ROUTES */}
+          <Route path="/about" element={<StaticPage />} />
+          <Route path="/contact" element={<StaticPage />} />
+          <Route path="/privacy" element={<StaticPage />} />
+          <Route path="/terms" element={<StaticPage />} />
+          
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "/:slug" AND "*" ROUTES */}
+          <Route path="/:slug" element={<StaticPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         </BrowserRouter>

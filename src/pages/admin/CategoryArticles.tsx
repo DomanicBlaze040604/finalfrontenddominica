@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Eye, Edit, Calendar, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { SafeComponent } from '@/components/SafeComponent';
 
 const CategoryArticles = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -64,6 +65,7 @@ const CategoryArticles = () => {
 
   return (
     <AdminLayout>
+      <SafeComponent componentName="CategoryArticles">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -179,9 +181,15 @@ const CategoryArticles = () => {
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
                                   {article.publishedAt
-                                    ? formatDistanceToNow(new Date(article.publishedAt), {
-                                        addSuffix: true,
-                                      })
+                                    ? (() => {
+                                        try {
+                                          return formatDistanceToNow(new Date(article.publishedAt), {
+                                            addSuffix: true,
+                                          });
+                                        } catch (e) {
+                                          return new Date(article.publishedAt).toLocaleDateString();
+                                        }
+                                      })()
                                     : 'Not published'}
                                 </span>
                                 {article.views !== undefined && (
@@ -241,6 +249,7 @@ const CategoryArticles = () => {
           </CardContent>
         </Card>
       </div>
+      </SafeComponent>
     </AdminLayout>
   );
 };
