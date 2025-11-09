@@ -38,8 +38,13 @@ const CategorySection = ({
   let articles: any[] = [];
   try {
     if (data && typeof data === 'object') {
-      if ('success' in data && data.success && 'data' in data && Array.isArray(data.data)) {
-        articles = data.data;
+      if ('success' in data && data.success && 'data' in data) {
+        // Handle both array and nested object responses
+        if (Array.isArray(data.data)) {
+          articles = data.data;
+        } else if (data.data && typeof data.data === 'object' && 'articles' in data.data) {
+          articles = (data.data as any).articles || [];
+        }
       } else if (Array.isArray(data)) {
         articles = data;
       }

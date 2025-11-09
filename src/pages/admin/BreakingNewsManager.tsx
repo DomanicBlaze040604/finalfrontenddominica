@@ -27,12 +27,44 @@ const BreakingNewsManager = () => {
   });
 
   // Fetch breaking news from API
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["breaking-news"],
-    queryFn: () => breakingNewsApi.getAll(),
+    queryFn: async () => {
+      try {
+        console.log('Fetching breaking news...');
+        const result = await breakingNewsApi.getAll();
+        console.log('Breaking news result:', result);
+        return result;
+      } catch (err) {
+        console.error('Breaking news fetch error:', err);
+        throw err;
+      }
+    },
+    retry: 1,
+    retryDelay: 1000,
   });
 
-  const breakingNews = data?.success ? data.data : [];
+  // Safely extract breaking news with fallback
+  let breakingNews: any[] = [];
+  try {
+    if (data && typeof data === 'object') {
+      if ('success' in data && data.success && 'data' in data) {
+        if (Array.isArray(data.data)) {
+          breakingNews = data.data;
+        } else if (data.data && typeof data.data === 'object' && 'breakingNews' in data.data) {
+          breakingNews = (data.data as any).breakingNews || [];
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing breaking news:', e);
+    breakingNews = [];
+  }
+
+  // Log error but don't crash
+  if (error) {
+    console.error('Breaking news query error:', error);
+  }
 
   // Create mutation
   const createMutation = useMutation({
