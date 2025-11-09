@@ -7,8 +7,17 @@ import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Share2 } from "lucide-react";
+import { SafeComponent } from "@/components/SafeComponent";
 
 const ArticlePage = () => {
+  return (
+    <SafeComponent componentName="ArticlePage">
+      <ArticlePageContent />
+    </SafeComponent>
+  );
+};
+
+const ArticlePageContent = () => {
   const { slug } = useParams<{ slug: string }>();
 
   const { data, isLoading, error } = useQuery({
