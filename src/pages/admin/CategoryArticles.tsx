@@ -26,7 +26,16 @@ const CategoryArticles = () => {
   });
 
   const category = categoryData?.success ? categoryData.data : null;
-  const articles = articlesData?.success ? articlesData.data : [];
+  
+  // Handle nested response structure
+  let articles: any[] = [];
+  if (articlesData?.success && articlesData.data) {
+    if (Array.isArray(articlesData.data)) {
+      articles = articlesData.data;
+    } else if (typeof articlesData.data === 'object' && 'articles' in articlesData.data) {
+      articles = (articlesData.data as any).articles || [];
+    }
+  }
 
   if (categoryLoading) {
     return (

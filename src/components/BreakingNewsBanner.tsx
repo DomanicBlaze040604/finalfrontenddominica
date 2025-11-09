@@ -30,7 +30,16 @@ export function BreakingNewsBanner() {
     console.warn('Failed to load breaking news:', error);
   }
 
-  const breakingNews: BreakingNews[] = data?.success && Array.isArray(data.data) ? data.data : [];
+  // Handle both single object and array responses
+  let breakingNews: BreakingNews[] = [];
+  if (data?.success && data.data) {
+    if (Array.isArray(data.data)) {
+      breakingNews = data.data;
+    } else if (typeof data.data === 'object') {
+      // Single breaking news item
+      breakingNews = [data.data as BreakingNews];
+    }
+  }
 
   useEffect(() => {
     if (breakingNews.length <= 1) return;
