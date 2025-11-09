@@ -5,8 +5,17 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import { Button } from "@/components/ui/button";
+import { SafeComponent } from "@/components/SafeComponent";
 
 const CategoryPage = () => {
+  return (
+    <SafeComponent componentName="CategoryPage">
+      <CategoryPageContent />
+    </SafeComponent>
+  );
+};
+
+const CategoryPageContent = () => {
   const { slug } = useParams<{ slug: string }>();
 
   const { data: categoryData } = useQuery({
