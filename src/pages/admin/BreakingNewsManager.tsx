@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SafeComponent } from "@/components/SafeComponent";
 
 const BreakingNewsManager = () => {
   const { toast } = useToast();
@@ -132,6 +133,7 @@ const BreakingNewsManager = () => {
 
   return (
     <AdminLayout>
+      <SafeComponent componentName="BreakingNewsManager">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -312,6 +314,7 @@ const BreakingNewsManager = () => {
             </div>
           )}
         </div>
+      </SafeComponent>
       </AdminLayout>
     );
   };

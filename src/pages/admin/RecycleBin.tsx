@@ -19,6 +19,7 @@ import {
 import { Trash2, RotateCcw, AlertTriangle, FileText, FolderOpen, Tag, FileCode, Megaphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { SafeComponent } from '@/components/SafeComponent';
 
 const RecycleBin = () => {
   const { toast } = useToast();
@@ -125,6 +126,7 @@ const RecycleBin = () => {
 
   return (
     <AdminLayout>
+      <SafeComponent componentName="RecycleBin">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -288,6 +290,7 @@ const RecycleBin = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      </SafeComponent>
     </AdminLayout>
   );
 };
