@@ -5,17 +5,20 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { articlesApi, authorsApi, categoriesApi, uploadsApi } from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import { EmbedManager } from "@/components/admin/EmbedManager";
 import ApiStatus from "@/components/ApiStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Save, Eye } from "lucide-react";
+import { Upload, X, Save, Eye, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import type { Embed } from "@/lib/api/types";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -26,20 +29,24 @@ const AdminPage = () => {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    summary: "",
+    excerpt: "",
     body: "",
     imageAlt: "",
     metaTitle: "",
     metaDescription: "",
     author: "",
     status: "draft",
-    pinned: false
+    scheduledAt: "",
+    pinned: false,
+    featured: false,
+    breaking: false
   });
   
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [embeds, setEmbeds] = useState<Embed[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   
   // Fetch categories and authors from API
@@ -86,14 +93,17 @@ const AdminPage = () => {
       setFormData({
         title: article.title,
         slug: article.slug,
-        summary: article.excerpt || "",
+        excerpt: article.excerpt || "",
         body: article.content,
         imageAlt: article.featuredImageAlt || "",
         metaTitle: article.seo?.metaTitle || "",
         metaDescription: article.seo?.metaDescription || article.excerpt || "",
         author: article.author?.id || "",
         status: article.status,
+        scheduledAt: article.scheduledAt ? new Date(article.scheduledAt).toISOString().slice(0, 16) : "",
         pinned: article.isPinned || false,
+        featured: article.isFeatured || false,
+        breaking: article.isBreaking || false,
       });
       
       if (article.featuredImage) {
@@ -103,6 +113,10 @@ const AdminPage = () => {
       
       if (article.category?.id) {
         setSelectedCategories([article.category.id]);
+      }
+
+      if (article.embeds && article.embeds.length > 0) {
+        setEmbeds(article.embeds);
       }
     }
   }, [articleData]);
@@ -226,10 +240,10 @@ const AdminPage = () => {
     e.preventDefault();
     
     // Validation
-    if (!formData.title || !formData.body || !formData.author) {
+    if (!formData.title || !formData.excerpt || !formData.body || !formData.author) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields (Title, Body, Author)",
+        description: "Please fill in all required fields (Title, Excerpt, Body, Author)",
         variant: "destructive"
       });
       return;
@@ -244,19 +258,33 @@ const AdminPage = () => {
       return;
     }
 
+    if (formData.status === 'scheduled' && !formData.scheduledAt) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a date and time for scheduled publishing",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Prepare article data
     const articleData = {
       title: formData.title,
       slug: formData.slug || undefined,
-      excerpt: formData.summary,
+      excerpt: formData.excerpt,
       content: formData.body,
       featuredImage: uploadedImageUrl || undefined,
       featuredImageAlt: formData.imageAlt,
       authorId: formData.author,
       categoryId: selectedCategories[0], // Use first category
-      status: formData.status as 'draft' | 'published',
+      status: formData.status as 'draft' | 'published' | 'scheduled',
+      scheduledAt: formData.status === 'scheduled' && formData.scheduledAt 
+        ? new Date(formData.scheduledAt).toISOString() 
+        : undefined,
       isPinned: formData.pinned,
-      isFeatured: formData.pinned, // Set featured if pinned
+      isFeatured: formData.featured,
+      isBreaking: formData.breaking,
+      embeds: embeds.length > 0 ? embeds : undefined,
       seo: {
         metaTitle: formData.metaTitle,
         metaDescription: formData.metaDescription,
@@ -413,14 +441,21 @@ const AdminPage = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="summary" className="text-base">Summary / Excerpt</Label>
+                  <Label htmlFor="excerpt" className="text-base">
+                    Excerpt / Summary <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
-                    id="summary"
+                    id="excerpt"
                     placeholder="Brief summary of the article (shown in cards and previews)"
-                    value={formData.summary}
-                    onChange={(e) => handleInputChange("summary", e.target.value)}
+                    value={formData.excerpt}
+                    onChange={(e) => handleInputChange("excerpt", e.target.value)}
                     className="mt-2 min-h-[80px]"
+                    maxLength={300}
+                    required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.excerpt.length}/300 characters
+                  </p>
                 </div>
 
                 <div>
@@ -499,6 +534,9 @@ const AdminPage = () => {
               </CardContent>
             </Card>
 
+            {/* Social Media Embeds */}
+            <EmbedManager embeds={embeds} onChange={setEmbeds} />
+
             {/* SEO Settings */}
             <Card className="interactive-card">
               <CardHeader>
@@ -545,37 +583,117 @@ const AdminPage = () => {
               <CardHeader>
                 <CardTitle>Publishing Options</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div>
-                  <Label htmlFor="status" className="text-base">Publication Status</Label>
-                  <Select
+                  <Label className="text-base mb-3 block">Publication Status</Label>
+                  <RadioGroup
                     value={formData.status}
                     onValueChange={(value) => handleInputChange("status", value)}
+                    className="space-y-3"
                   >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft (Not Published)</SelectItem>
-                      <SelectItem value="published">Published (Live)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="draft" id="draft" />
+                      <Label htmlFor="draft" className="flex-1 cursor-pointer">
+                        <div className="font-medium">Save as Draft</div>
+                        <div className="text-sm text-muted-foreground">
+                          Keep this article private and unpublished
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="published" id="published" />
+                      <Label htmlFor="published" className="flex-1 cursor-pointer">
+                        <div className="font-medium">Publish Now</div>
+                        <div className="text-sm text-muted-foreground">
+                          Make this article live immediately
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="scheduled" id="scheduled" />
+                      <Label htmlFor="scheduled" className="flex-1 cursor-pointer">
+                        <div className="font-medium flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Schedule for Later
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Set a future date and time to publish
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label htmlFor="pinned" className="text-base font-medium">
-                      Pin as Featured Story
+                {formData.status === 'scheduled' && (
+                  <div className="p-4 border rounded-lg bg-muted/30">
+                    <Label htmlFor="scheduledAt" className="text-base">
+                      Schedule Date & Time <span className="text-destructive">*</span>
                     </Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This article will appear in the Featured Story section on homepage
+                    <Input
+                      id="scheduledAt"
+                      type="datetime-local"
+                      value={formData.scheduledAt}
+                      onChange={(e) => handleInputChange("scheduledAt", e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                      className="mt-2"
+                      required={formData.status === 'scheduled'}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Article will be automatically published at the scheduled time
                     </p>
                   </div>
-                  <Switch
-                    id="pinned"
-                    checked={formData.pinned}
-                    onCheckedChange={(checked) => handleInputChange("pinned", checked)}
-                  />
+                )}
+
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label htmlFor="pinned" className="text-base font-medium">
+                        Pin Article
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Pin this article to the top of article lists
+                      </p>
+                    </div>
+                    <Switch
+                      id="pinned"
+                      checked={formData.pinned}
+                      onCheckedChange={(checked) => handleInputChange("pinned", checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label htmlFor="featured" className="text-base font-medium">
+                        Featured Story
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Show in the Featured Story section on homepage
+                      </p>
+                    </div>
+                    <Switch
+                      id="featured"
+                      checked={formData.featured}
+                      onCheckedChange={(checked) => handleInputChange("featured", checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label htmlFor="breaking" className="text-base font-medium">
+                        Breaking News
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Mark as breaking news with special badge
+                      </p>
+                    </div>
+                    <Switch
+                      id="breaking"
+                      checked={formData.breaking}
+                      onCheckedChange={(checked) => handleInputChange("breaking", checked)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

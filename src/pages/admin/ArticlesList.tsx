@@ -76,16 +76,25 @@ const ArticlesList = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <CardTitle className="text-lg">{article.title}</CardTitle>
-                        <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
+                        <Badge variant={
+                          article.status === 'published' ? 'default' : 
+                          article.status === 'scheduled' ? 'outline' : 
+                          'secondary'
+                        }>
                           {article.status}
                         </Badge>
                         {article.isPinned && <Badge variant="destructive">Pinned</Badge>}
                         {article.isFeatured && <Badge className="bg-yellow-500">Featured</Badge>}
+                        {article.isBreaking && <Badge className="bg-red-600">Breaking</Badge>}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
                         <span>{article.author.name}</span>
                         <span>•</span>
-                        <span>{new Date(article.publishedAt || article.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          {article.status === 'scheduled' && article.scheduledAt
+                            ? `Scheduled: ${new Date(article.scheduledAt).toLocaleDateString()}`
+                            : new Date(article.publishedAt || article.createdAt).toLocaleDateString()}
+                        </span>
                         {article.views && article.views > 0 && (
                           <>
                             <span>•</span>
@@ -93,6 +102,12 @@ const ArticlesList = () => {
                               <Eye className="h-3 w-3" />
                               {article.views} views
                             </span>
+                          </>
+                        )}
+                        {article.embeds && article.embeds.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>{article.embeds.length} embed{article.embeds.length > 1 ? 's' : ''}</span>
                           </>
                         )}
                       </div>

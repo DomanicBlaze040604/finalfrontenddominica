@@ -4,6 +4,7 @@ import { articlesApi } from "@/lib/api";
 import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { UniversalEmbed } from "@/components/UniversalEmbed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Share2 } from "lucide-react";
@@ -180,6 +181,15 @@ const ArticlePageContent = () => {
             className="prose prose-lg max-w-none"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
+
+          {/* Social Media Embeds */}
+          {article.embeds && article.embeds.length > 0 && (
+            <div className="my-8 space-y-6">
+              {article.embeds.map((embed, index) => (
+                <UniversalEmbed key={index} embed={embed} />
+              ))}
+            </div>
+          )}
 
           {/* Tags */}
           {article.tags && article.tags.length > 0 && (

@@ -27,6 +27,15 @@ export interface Author {
   updatedAt: string;
 }
 
+export interface Embed {
+  type: string;
+  url?: string;
+  embedCode?: string;
+  caption?: string;
+  width?: string;
+  height?: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -36,14 +45,16 @@ export interface Article {
   featuredImage?: string;
   featuredImageAlt?: string;
   gallery?: string[];
+  embeds?: Embed[];
   author: Author;
   category?: Category | null;
   tags?: string[];
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;
   isFeatured?: boolean;
   isBreaking?: boolean;
   publishedAt?: string;
+  scheduledAt?: string | null;
   scheduledFor?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -81,8 +92,9 @@ export interface ArticlesParams {
   category?: string;
   author?: string;
   search?: string;
-  status?: 'draft' | 'published';
+  status?: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;
+  isFeatured?: boolean;
 }
 
 export interface CreateArticleData {
@@ -92,14 +104,19 @@ export interface CreateArticleData {
   content: string;
   featuredImage?: string;
   featuredImageAlt?: string;
+  gallery?: string[];
+  embeds?: Embed[];
   authorId: string;
   categoryId?: string;
   tags?: string[];
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;
   isFeatured?: boolean;
   isBreaking?: boolean;
+  scheduledAt?: string;
   scheduledFor?: string;
+  location?: string;
+  language?: string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
