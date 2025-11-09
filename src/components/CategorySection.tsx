@@ -71,7 +71,8 @@ const CategorySection = ({
     );
   }
 
-  if (articles.length === 0) {
+  // Don't show section if no articles and not loading
+  if (!isLoading && articles.length === 0) {
     return null;
   }
 
