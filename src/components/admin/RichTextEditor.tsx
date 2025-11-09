@@ -1,7 +1,10 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Bold,
   Italic,
@@ -21,7 +24,8 @@ import {
   Heading2,
   Heading3,
   Code,
-  Type
+  Type,
+  Video
 } from "lucide-react";
 
 interface RichTextEditorProps {
