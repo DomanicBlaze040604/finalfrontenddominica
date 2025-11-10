@@ -24,6 +24,7 @@ import {
   Tag,
   Calendar,
   Trash2,
+  Radio,
 } from "lucide-react";
 
 const mainItems = [
@@ -36,6 +37,7 @@ const mainItems = [
 const contentItems = [
   { title: "Pages", url: "/admin/pages", icon: FileEdit },
   { title: "Breaking News", url: "/admin/breaking-news", icon: AlertCircle },
+  { title: "Live Updates", url: "/admin/live-updates", icon: Radio },
   { title: "Media Library", url: "/admin/media", icon: Image },
   { title: "Tags", url: "/admin/tags", icon: Tag },
 ];

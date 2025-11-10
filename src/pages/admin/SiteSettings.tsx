@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { HomepageSettings } from "@/components/admin/HomepageSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -258,62 +259,7 @@ const SiteSettings = () => {
 
           {/* Homepage Settings */}
           <TabsContent value="homepage">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Homepage Layout
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="p-4 border rounded-lg bg-muted/30">
-                  <Label className="text-base font-medium mb-3 block">
-                    Homepage Section Order
-                  </Label>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Choose which section appears first on the homepage
-                  </p>
-                  <select
-                    value={generalSettings.homepageSectionOrder}
-                    onChange={(e) => handleGeneralChange("homepageSectionOrder", e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                  >
-                    <option value="latest-first">Latest News First (Recommended)</option>
-                    <option value="featured-first">Featured Story First</option>
-                  </select>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <Label className="text-base font-medium mb-2 block">
-                    Homepage Category Sections
-                  </Label>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Select which categories to display on the homepage and drag to reorder them.
-                    These sections will appear below Latest News and Featured Story.
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Available Categories:</p>
-                    <div className="p-4 border rounded-lg bg-muted/20">
-                      <p className="text-sm text-muted-foreground">
-                        Go to <strong>Categories Manager</strong> to create and manage categories.
-                        All categories will automatically appear here for selection.
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        💡 <strong>Coming soon:</strong> Drag-and-drop category ordering interface
-                      </p>
-                      <p className="text-sm text-primary mt-2">
-                        <strong>Current behavior:</strong> First 3 categories are shown by default
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button onClick={() => handleSave("Homepage")}>
-                  Save Homepage Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <HomepageSettings />
           </TabsContent>
 
           {/* SEO Settings */}

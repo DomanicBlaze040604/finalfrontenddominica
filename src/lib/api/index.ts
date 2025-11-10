@@ -8,6 +8,7 @@ export { default as tagsApi } from './tags';
 export { default as settingsApi } from './settings';
 export { default as mediaApi } from './media';
 export { default as recycleBinApi } from './recycleBin';
+export { default as liveUpdatesApi } from './liveUpdates';
 export { default as apiClient } from './client';
 export { authService } from './auth';
 export * from './types';

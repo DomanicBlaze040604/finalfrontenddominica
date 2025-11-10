@@ -9,6 +9,7 @@ import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import { BreakingNewsBanner } from "@/components/BreakingNewsBanner";
 import BreakingNewsPanel from "@/components/BreakingNewsPanel";
+import LiveUpdatesWidget from "@/components/LiveUpdatesWidget";
 import { SafeComponent } from "@/components/SafeComponent";
 
 const Index = () => {
@@ -169,6 +170,11 @@ const Index = () => {
             </SafeComponent>
           </div>
         </div>
+
+        {/* Live Updates Widget */}
+        <SafeComponent componentName="LiveUpdatesWidget">
+          <LiveUpdatesWidget />
+        </SafeComponent>
         
         {/* Main Sections - Order controlled by admin settings */}
         {renderMainSections()}

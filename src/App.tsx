@@ -27,6 +27,8 @@ import SiteSettings from "./pages/admin/SiteSettings";
 import Analytics from "./pages/admin/Analytics";
 import RecycleBin from "./pages/admin/RecycleBin";
 import CategoryArticles from "./pages/admin/CategoryArticles";
+import LiveUpdatesManager from "./pages/admin/LiveUpdatesManager";
+import LiveUpdatePage from "./pages/LiveUpdatePage";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
@@ -60,6 +62,7 @@ const App = () => (
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/live/:id" element={<LiveUpdatePage />} />
           
           {/* Auth Routes - MUST BE BEFORE CATCH-ALL */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -142,6 +145,11 @@ const App = () => (
           <Route path="/admin/recycle-bin" element={
             <ProtectedRoute>
               <RecycleBin />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/live-updates" element={
+            <ProtectedRoute>
+              <LiveUpdatesManager />
             </ProtectedRoute>
           } />
           
