@@ -21,7 +21,8 @@ const SiteSettings = () => {
     timezone: "America/Dominica",
     language: "en",
     dateFormat: "MM/DD/YYYY",
-    timeFormat: "12h"
+    timeFormat: "12h",
+    homepageSectionOrder: "latest-first" as "latest-first" | "featured-first"
   });
 
   const [seoSettings, setSeoSettings] = useState({
@@ -227,6 +228,24 @@ const SiteSettings = () => {
                       <option value="24h">24 Hour</option>
                     </select>
                   </div>
+                </div>
+
+                <div className="p-4 border rounded-lg bg-muted/30">
+                  <Label htmlFor="homepageSectionOrder" className="text-base font-medium">
+                    Homepage Section Order
+                  </Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Choose which section appears first on the homepage
+                  </p>
+                  <select
+                    id="homepageSectionOrder"
+                    value={generalSettings.homepageSectionOrder}
+                    onChange={(e) => handleGeneralChange("homepageSectionOrder", e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                  >
+                    <option value="latest-first">Latest News First (Recommended)</option>
+                    <option value="featured-first">Featured Story First</option>
+                  </select>
                 </div>
 
                 <Button onClick={() => handleSave("General")}>

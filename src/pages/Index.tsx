@@ -1,6 +1,6 @@
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useQuery } from "@tanstack/react-query";
-import { categoriesApi } from "@/lib/api";
+import { categoriesApi, settingsApi } from "@/lib/api";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import FeaturedStory from "@/components/FeaturedStory";
@@ -21,6 +21,13 @@ const Index = () => {
     queryFn: () => categoriesApi.getAll(),
     retry: 1,
     retryDelay: 1000,
+  });
+
+  // Fetch site settings for section ordering
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsApi.get(),
+    retry: 1,
   });
 
   // Handle errors gracefully
@@ -45,6 +52,60 @@ const Index = () => {
   
   // Show top 3 categories on homepage
   const topCategories = categories.slice(0, 3);
+
+  // Get section order from settings (default: latest-first)
+  const sectionOrder = settingsData?.success && settingsData.data?.homepageSectionOrder 
+    ? settingsData.data.homepageSectionOrder 
+    : 'latest-first';
+
+  // Render sections based on order
+  const renderMainSections = () => {
+    const featuredSection = (
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="container mx-auto px-4 py-12">
+          <div 
+            ref={featuredObserver.ref}
+            className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
+          >
+            <SafeComponent componentName="FeaturedStory">
+              <FeaturedStory />
+            </SafeComponent>
+          </div>
+        </div>
+      </div>
+    );
+
+    const latestSection = (
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-12">
+          <div 
+            ref={latestNewsObserver.ref}
+            className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
+          >
+            <SafeComponent componentName="LatestNews">
+              <LatestNews />
+            </SafeComponent>
+          </div>
+        </div>
+      </div>
+    );
+
+    if (sectionOrder === 'featured-first') {
+      return (
+        <>
+          {featuredSection}
+          {latestSection}
+        </>
+      );
+    } else {
+      return (
+        <>
+          {latestSection}
+          {featuredSection}
+        </>
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -73,33 +134,8 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Latest News - Grid Layout */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="container mx-auto px-4 py-12">
-            <div 
-              ref={latestNewsObserver.ref}
-              className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
-            >
-              <SafeComponent componentName="LatestNews">
-                <LatestNews />
-              </SafeComponent>
-            </div>
-          </div>
-        </div>
-
-        {/* Featured Story - Hero Section */}
-        <div className="bg-gray-50 border-b border-gray-200">
-          <div className="container mx-auto px-4 py-12">
-            <div 
-              ref={featuredObserver.ref}
-              className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
-            >
-              <SafeComponent componentName="FeaturedStory">
-                <FeaturedStory />
-              </SafeComponent>
-            </div>
-          </div>
-        </div>
+        {/* Main Sections - Order controlled by admin settings */}
+        {renderMainSections()}
 
         {/* Category Sections - Clean Separation */}
         {topCategories && topCategories.length > 0 && topCategories.map((category, index) => {

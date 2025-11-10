@@ -373,7 +373,7 @@ const CategoriesManager = () => {
                           className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
+                            if (confirm(`Are you sure you want to delete "${category.name}"?\n\nNote: You cannot delete categories that have articles. Move or delete articles first.`)) {
                               deleteMutation.mutate(category.id);
                             }
                           }}

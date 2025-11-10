@@ -16,6 +16,7 @@ export interface SiteSettings {
   siteName?: string;
   siteDescription?: string;
   contactEmail?: string;
+  homepageSectionOrder?: 'featured-first' | 'latest-first';
   updatedAt: string;
 }
 

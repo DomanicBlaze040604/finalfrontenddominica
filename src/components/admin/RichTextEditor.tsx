@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TiptapImage from '@tiptap/extension-image';
 import TiptapLink from '@tiptap/extension-link';
+import CharacterCount from '@tiptap/extension-character-count';
 import { EmbedNode } from './EmbedExtension';
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
           class: 'text-primary underline',
         },
       }),
+      CharacterCount,
       EmbedNode,
     ],
     content,
@@ -366,14 +368,19 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
         />
       </div>
 
-      {/* Footer with word count */}
-      <div className="border-t bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
-        <div className="flex justify-between items-center">
-          <span>
-            {editor.storage.characterCount?.characters() || 0} characters, {editor.storage.characterCount?.words() || 0} words
-          </span>
-          <span className="text-xs">
-            💡 Tip: Click Video button (📹) for inline embeds, or use "Social Media Embeds" section for end embeds
+      {/* Footer with character count */}
+      <div className="border-t bg-muted/30 px-4 py-2.5 text-xs">
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex items-center gap-4">
+            <span className="font-medium text-foreground">
+              {editor.storage.characterCount?.characters()?.toLocaleString() || 0} characters
+            </span>
+            <span className="text-muted-foreground">
+              {editor.storage.characterCount?.words()?.toLocaleString() || 0} words
+            </span>
+          </div>
+          <span className="text-muted-foreground hidden sm:inline">
+            💡 Use Video button (📹) for inline embeds
           </span>
         </div>
       </div>

@@ -36,7 +36,7 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
     }
 
     // Load Twitter embed script
-    if (embed.type === 'twitter' && !embed.embedCode) {
+    if ((embed.type === 'twitter' || embed.type === 'x') && !embed.embedCode) {
       const loadTwitter = () => {
         if (window.twttr) {
           setTimeout(() => {
@@ -46,6 +46,7 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
           const script = document.createElement('script');
           script.src = 'https://platform.twitter.com/widgets.js';
           script.async = true;
+          script.charset = 'utf-8';
           script.onload = () => {
             setTimeout(() => {
               if (window.twttr) {
@@ -60,6 +61,44 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
       
       // Retry after a delay
       const timer = setTimeout(loadTwitter, 1000);
+      return () => clearTimeout(timer);
+    }
+
+    // Load Facebook SDK
+    if (embed.type === 'facebook' && !embed.embedCode) {
+      const loadFacebook = () => {
+        if (window.FB) {
+          setTimeout(() => {
+            window.FB.XFBML.parse();
+          }, 100);
+        } else {
+          // Load Facebook SDK
+          const fbRoot = document.getElementById('fb-root');
+          if (!fbRoot) {
+            const div = document.createElement('div');
+            div.id = 'fb-root';
+            document.body.appendChild(div);
+          }
+          
+          const script = document.createElement('script');
+          script.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0';
+          script.async = true;
+          script.defer = true;
+          script.crossOrigin = 'anonymous';
+          script.onload = () => {
+            setTimeout(() => {
+              if (window.FB) {
+                window.FB.XFBML.parse();
+              }
+            }, 100);
+          };
+          document.body.appendChild(script);
+        }
+      };
+      loadFacebook();
+      
+      // Retry after a delay
+      const timer = setTimeout(loadFacebook, 1000);
       return () => clearTimeout(timer);
     }
 
@@ -125,6 +164,15 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
 
       case 'twitter':
       case 'x':
+        // Extract tweet ID from URL
+        const tweetId = embed.url?.split('/status/')[1]?.split('?')[0];
+        if (!tweetId) {
+          return (
+            <div className="p-4 border rounded-lg bg-muted">
+              <p className="text-sm text-muted-foreground">Invalid Twitter URL</p>
+            </div>
+          );
+        }
         return (
           <blockquote 
             className="twitter-tweet" 
@@ -207,17 +255,16 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
         );
 
       case 'facebook':
+        // Facebook embed using oEmbed API
+        const fbUrl = encodeURIComponent(embed.url || '');
         return (
-          <iframe
-            src={`https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(embed.url || '')}&width=500`}
-            width={embed.width || '500'}
-            height={embed.height || '600'}
-            style={{ border: 'none', overflow: 'hidden' }}
-            scrolling="no"
-            frameBorder="0"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-          />
+          <div className="fb-post" data-href={embed.url} data-width="500" data-show-text="true">
+            <blockquote cite={embed.url} className="fb-xfbml-parse-ignore">
+              <a href={embed.url} target="_blank" rel="noopener noreferrer">
+                View this post on Facebook
+              </a>
+            </blockquote>
+          </div>
         );
 
       case 'codepen':
@@ -287,5 +334,6 @@ declare global {
     instgrm?: any;
     twttr?: any;
     TikTokEmbed?: any;
+    FB?: any;
   }
 }
