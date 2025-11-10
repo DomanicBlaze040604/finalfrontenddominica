@@ -23,11 +23,12 @@
 **Problem:** Twitter embeds weren't rendering in the Embed Manager.
 
 **Solution:**
-- Fixed Twitter widget script loading
-- Added proper charset and async attributes
+- Implemented **official blockquote + script method** (same as Twitter provides)
+- Supports both URL input and full embed code pasting
+- Proper Twitter widgets.js script loading with retry mechanism
 - Improved tweet ID extraction from URLs
 - Added validation for invalid Twitter URLs
-- Enhanced retry mechanism for script loading
+- Full interactive tweet cards with like/retweet buttons
 
 ### 3. Facebook Embeds Not Working
 **Problem:** Facebook embeds weren't rendering in the Embed Manager.

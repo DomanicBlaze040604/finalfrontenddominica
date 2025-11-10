@@ -35,7 +35,42 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
       return () => clearTimeout(timer);
     }
 
-    // Twitter uses iframe embed, no script needed
+    // Load Twitter widget script for blockquote embeds
+    if ((embed.type === 'twitter' || embed.type === 'x') && !embed.embedCode) {
+      const loadTwitter = () => {
+        if (window.twttr?.widgets) {
+          setTimeout(() => {
+            window.twttr.widgets.load();
+          }, 100);
+        } else {
+          // Check if script already exists
+          const existingScript = document.querySelector('script[src*="platform.twitter.com/widgets.js"]');
+          if (!existingScript) {
+            const script = document.createElement('script');
+            script.src = 'https://platform.twitter.com/widgets.js';
+            script.async = true;
+            script.charset = 'utf-8';
+            script.onload = () => {
+              setTimeout(() => {
+                if (window.twttr?.widgets) {
+                  window.twttr.widgets.load();
+                }
+              }, 100);
+            };
+            document.body.appendChild(script);
+          }
+        }
+      };
+      loadTwitter();
+      
+      // Retry after delays to ensure rendering
+      const timer1 = setTimeout(loadTwitter, 500);
+      const timer2 = setTimeout(loadTwitter, 1500);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
 
     // Load Facebook SDK
     if (embed.type === 'facebook' && !embed.embedCode) {
@@ -137,7 +172,7 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
 
       case 'twitter':
       case 'x':
-        // Use iframe embed for better reliability
+        // Use blockquote method with Twitter widget script
         const tweetUrl = embed.url || '';
         const tweetId = tweetUrl.split('/status/')[1]?.split('?')[0];
         
@@ -151,19 +186,19 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
           );
         }
 
-        // Use Twitter's iframe embed (more reliable than widget)
+        // Use blockquote method (same as Twitter's official embed code)
         return (
           <div className="twitter-embed-wrapper" style={{ maxWidth: '550px', margin: '0 auto' }}>
-            <iframe
-              src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light&dnt=true`}
-              width="550"
-              height="500"
-              style={{ border: 'none', overflow: 'hidden' }}
-              scrolling="no"
-              frameBorder="0"
-              allowFullScreen
-              className="rounded-lg"
-            />
+            <blockquote 
+              className="twitter-tweet" 
+              data-theme="light"
+              data-dnt="true"
+              data-lang="en"
+            >
+              <a href={embed.url} target="_blank" rel="noopener noreferrer">
+                View this post on Twitter
+              </a>
+            </blockquote>
           </div>
         );
 

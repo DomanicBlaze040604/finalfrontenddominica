@@ -157,16 +157,19 @@ export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
                   <Label>
                     Custom Embed Code (Optional)
                     <span className="text-xs text-muted-foreground ml-2">
-                      Paste iframe or embed code from the platform
+                      Paste iframe or embed code from the platform (e.g., Twitter's blockquote + script)
                     </span>
                   </Label>
                   <Textarea
-                    placeholder='<iframe src="..." ...></iframe>'
+                    placeholder='<blockquote class="twitter-tweet">...</blockquote> <script async src="..."></script>'
                     value={embed.embedCode || ''}
                     onChange={(e) => updateEmbed(index, 'embedCode', e.target.value)}
                     className="mt-2 font-mono text-sm"
-                    rows={3}
+                    rows={4}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    💡 For Twitter: Go to tweet → Click "..." → "Embed Tweet" → Copy full code
+                  </p>
                 </div>
 
                 <div>
