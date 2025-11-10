@@ -35,34 +35,7 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
       return () => clearTimeout(timer);
     }
 
-    // Load Twitter embed script
-    if ((embed.type === 'twitter' || embed.type === 'x') && !embed.embedCode) {
-      const loadTwitter = () => {
-        if (window.twttr) {
-          setTimeout(() => {
-            window.twttr.widgets.load();
-          }, 100);
-        } else {
-          const script = document.createElement('script');
-          script.src = 'https://platform.twitter.com/widgets.js';
-          script.async = true;
-          script.charset = 'utf-8';
-          script.onload = () => {
-            setTimeout(() => {
-              if (window.twttr) {
-                window.twttr.widgets.load();
-              }
-            }, 100);
-          };
-          document.body.appendChild(script);
-        }
-      };
-      loadTwitter();
-      
-      // Retry after a delay
-      const timer = setTimeout(loadTwitter, 1000);
-      return () => clearTimeout(timer);
-    }
+    // Twitter uses iframe embed, no script needed
 
     // Load Facebook SDK
     if (embed.type === 'facebook' && !embed.embedCode) {
@@ -164,25 +137,34 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
 
       case 'twitter':
       case 'x':
-        // Extract tweet ID from URL
-        const tweetId = embed.url?.split('/status/')[1]?.split('?')[0];
+        // Use iframe embed for better reliability
+        const tweetUrl = embed.url || '';
+        const tweetId = tweetUrl.split('/status/')[1]?.split('?')[0];
+        
         if (!tweetId) {
           return (
             <div className="p-4 border rounded-lg bg-muted">
-              <p className="text-sm text-muted-foreground">Invalid Twitter URL</p>
+              <p className="text-sm text-muted-foreground">
+                Invalid Twitter URL. Please use format: https://twitter.com/username/status/123456789
+              </p>
             </div>
           );
         }
+
+        // Use Twitter's iframe embed (more reliable than widget)
         return (
-          <blockquote 
-            className="twitter-tweet" 
-            data-theme="light"
-            data-dnt="true"
-          >
-            <a href={embed.url} target="_blank" rel="noopener noreferrer">
-              View this post on Twitter
-            </a>
-          </blockquote>
+          <div className="twitter-embed-wrapper" style={{ maxWidth: '550px', margin: '0 auto' }}>
+            <iframe
+              src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light&dnt=true`}
+              width="550"
+              height="500"
+              style={{ border: 'none', overflow: 'hidden' }}
+              scrolling="no"
+              frameBorder="0"
+              allowFullScreen
+              className="rounded-lg"
+            />
+          </div>
         );
 
       case 'youtube':
