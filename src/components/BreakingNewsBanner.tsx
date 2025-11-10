@@ -67,35 +67,35 @@ export function BreakingNewsBanner() {
 
   return (
     <div
-      className={`sticky top-0 z-50 ${priorityColors[currentNews.priority]} animate-in slide-in-from-top duration-300`}
+      className={`sticky top-0 z-50 ${priorityColors[currentNews.priority]} border-b border-black/10`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center gap-3 py-3">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 animate-pulse" />
+        <div className="flex items-center gap-3 py-2.5">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
           
-          <div className="flex-1 flex items-center gap-2">
-            <span className="font-bold text-sm uppercase tracking-wide">Breaking News</span>
-            <span className="hidden sm:inline">•</span>
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            <span className="font-bold text-xs uppercase tracking-wider">Breaking News</span>
+            <span className="hidden sm:inline text-sm">•</span>
             {currentNews.link ? (
               <Link
                 to={currentNews.link}
-                className="font-medium hover:underline line-clamp-1"
+                className="font-medium text-sm hover:underline truncate"
               >
                 {currentNews.title}
               </Link>
             ) : (
-              <span className="font-medium line-clamp-1">{currentNews.title}</span>
+              <span className="font-medium text-sm truncate">{currentNews.title}</span>
             )}
           </div>
 
           {breakingNews.length > 1 && (
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
               {breakingNews.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    index === currentIndex ? "w-6 bg-current" : "w-1.5 bg-current/40"
+                  className={`h-1 rounded-full transition-all ${
+                    index === currentIndex ? "w-4 bg-current" : "w-1 bg-current/40"
                   }`}
                   aria-label={`Go to news ${index + 1}`}
                 />
@@ -107,9 +107,9 @@ export function BreakingNewsBanner() {
             variant="ghost"
             size="icon"
             onClick={() => setIsVisible(false)}
-            className="h-6 w-6 flex-shrink-0 hover:bg-white/20"
+            className="h-6 w-6 flex-shrink-0 hover:bg-black/10"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

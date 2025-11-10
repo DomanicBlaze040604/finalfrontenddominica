@@ -45,6 +45,7 @@ const AdminPage = () => {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
+  const [primaryCategory, setPrimaryCategory] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [embeds, setEmbeds] = useState<Embed[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,15 +92,15 @@ const AdminPage = () => {
     if (articleData?.success && articleData.data) {
       const article = articleData.data;
       setFormData({
-        title: article.title,
-        slug: article.slug,
+        title: article.title || "",
+        slug: article.slug || "",
         excerpt: article.excerpt || "",
-        body: article.content,
+        body: article.content || "", // ✅ Fixed: Load article content
         imageAlt: article.featuredImageAlt || "",
         metaTitle: article.seo?.metaTitle || "",
         metaDescription: article.seo?.metaDescription || article.excerpt || "",
         author: article.author?.id || "",
-        status: article.status,
+        status: article.status || "draft",
         scheduledAt: article.scheduledAt ? new Date(article.scheduledAt).toISOString().slice(0, 16) : "",
         pinned: article.isPinned || false,
         featured: article.isFeatured || false,
@@ -111,8 +112,20 @@ const AdminPage = () => {
         setImagePreview(article.featuredImage);
       }
       
+      // Set primary category
       if (article.category?.id) {
+        setPrimaryCategory(article.category.id);
         setSelectedCategories([article.category.id]);
+      }
+
+      // Add additional categories if they exist
+      if (article.categories && article.categories.length > 0) {
+        const categoryIds = article.categories.map((cat: any) => cat.id);
+        setSelectedCategories(categoryIds);
+        // If no primary category set, use first from categories
+        if (!article.category?.id && categoryIds.length > 0) {
+          setPrimaryCategory(categoryIds[0]);
+        }
       }
 
       if (article.embeds && article.embeds.length > 0) {
@@ -249,6 +262,15 @@ const AdminPage = () => {
       return;
     }
     
+    if (!primaryCategory) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a primary category",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (selectedCategories.length === 0) {
       toast({
         title: "Validation Error",
@@ -276,7 +298,8 @@ const AdminPage = () => {
       featuredImage: uploadedImageUrl || undefined,
       featuredImageAlt: formData.imageAlt,
       authorId: formData.author,
-      categoryId: selectedCategories[0], // Use first category
+      categoryId: primaryCategory, // Primary category
+      categoryIds: selectedCategories, // All selected categories (for multiple categories support)
       status: formData.status as 'draft' | 'published' | 'scheduled',
       scheduledAt: formData.status === 'scheduled' && formData.scheduledAt 
         ? new Date(formData.scheduledAt).toISOString() 
@@ -510,22 +533,70 @@ const AdminPage = () => {
 
                 <div>
                   <Label className="text-base">
-                    Categories <span className="text-destructive">*</span>
+                    Primary Category <span className="text-destructive">*</span>
                   </Label>
+                  <Select
+                    value={primaryCategory}
+                    onValueChange={(value) => {
+                      setPrimaryCategory(value);
+                      // Ensure primary category is in selected categories
+                      if (!selectedCategories.includes(value)) {
+                        setSelectedCategories([...selectedCategories, value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select primary category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                      {categories.length === 0 && (
+                        <SelectItem value="loading" disabled>
+                          Loading categories...
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Main category for this article
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-base">
+                    Additional Categories (Optional)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Article will appear in all selected categories
+                  </p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {categories.map((category) => (
-                      <Badge
-                        key={category.id}
-                        variant={selectedCategories.includes(category.id) ? "default" : "outline"}
-                        className="cursor-pointer transition-all hover:scale-105"
-                        onClick={() => toggleCategory(category.id)}
-                      >
-                        {category.name}
-                        {selectedCategories.includes(category.id) && (
-                          <X className="ml-1 h-3 w-3" />
-                        )}
-                      </Badge>
-                    ))}
+                    {categories.map((category) => {
+                      const isSelected = selectedCategories.includes(category.id);
+                      const isPrimary = category.id === primaryCategory;
+                      return (
+                        <Badge
+                          key={category.id}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`cursor-pointer transition-all hover:scale-105 ${
+                            isPrimary ? 'ring-2 ring-primary ring-offset-2' : ''
+                          }`}
+                          onClick={() => {
+                            if (isPrimary) return; // Can't unselect primary
+                            toggleCategory(category.id);
+                          }}
+                        >
+                          {isPrimary && '⭐ '}
+                          {category.name}
+                          {isSelected && !isPrimary && (
+                            <X className="ml-1 h-3 w-3" />
+                          )}
+                        </Badge>
+                      );
+                    })}
                   </div>
                   {categories.length === 0 && (
                     <p className="text-sm text-muted-foreground mt-2">Loading categories...</p>

@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { UniversalEmbed } from "@/components/UniversalEmbed";
+import { EmbedRenderer } from "@/components/EmbedRenderer";
+import RelatedArticles from "@/components/RelatedArticles";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Share2 } from "lucide-react";
@@ -32,6 +34,8 @@ const ArticlePageContent = () => {
       articlesApi.incrementViews(slug).catch(console.error);
     }
   }, [slug, data]);
+
+
 
   if (isLoading) {
     return (
@@ -128,16 +132,30 @@ const ArticlePageContent = () => {
             )}
           </div>
 
-          {/* Featured Image */}
+          {/* Excerpt */}
+          {article.excerpt && (
+            <div className="mb-8 p-6 bg-muted/50 border-l-4 border-primary rounded-r-lg">
+              <p className="text-xl leading-relaxed text-muted-foreground italic">
+                {article.excerpt}
+              </p>
+            </div>
+          )}
+
+          {/* Featured Image with Caption */}
           {article.featuredImage && (
-            <div className="mb-8">
+            <figure className="mb-8">
               <img
                 src={article.featuredImage}
                 alt={article.featuredImageAlt || article.title}
                 className="w-full h-auto rounded-lg"
                 loading="eager"
               />
-            </div>
+              {article.featuredImageAlt && (
+                <figcaption className="mt-3 text-sm text-muted-foreground text-center italic">
+                  {article.featuredImageAlt}
+                </figcaption>
+              )}
+            </figure>
           )}
 
           {/* Share Buttons */}
@@ -177,10 +195,7 @@ const ArticlePageContent = () => {
           </div>
 
           {/* Article Content */}
-          <div 
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+          <EmbedRenderer content={article.content} />
 
           {/* Social Media Embeds */}
           {article.embeds && article.embeds.length > 0 && (
@@ -222,6 +237,11 @@ const ArticlePageContent = () => {
             )}
           </div>
         </article>
+
+        {/* Related Articles */}
+        <div className="container mx-auto px-4 max-w-4xl">
+          <RelatedArticles articleId={article.id} limit={6} />
+        </div>
       </main>
       <Footer />
     </div>

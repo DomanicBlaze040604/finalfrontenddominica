@@ -9,26 +9,58 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
   useEffect(() => {
     // Load Instagram embed script
     if (embed.type === 'instagram' && !embed.embedCode) {
-      if (window.instgrm) {
-        window.instgrm.Embeds.process();
-      } else {
-        const script = document.createElement('script');
-        script.src = '//www.instagram.com/embed.js';
-        script.async = true;
-        document.body.appendChild(script);
-      }
+      const loadInstagram = () => {
+        if (window.instgrm) {
+          setTimeout(() => {
+            window.instgrm.Embeds.process();
+          }, 100);
+        } else {
+          const script = document.createElement('script');
+          script.src = '//www.instagram.com/embed.js';
+          script.async = true;
+          script.onload = () => {
+            setTimeout(() => {
+              if (window.instgrm) {
+                window.instgrm.Embeds.process();
+              }
+            }, 100);
+          };
+          document.body.appendChild(script);
+        }
+      };
+      loadInstagram();
+      
+      // Retry after a delay
+      const timer = setTimeout(loadInstagram, 1000);
+      return () => clearTimeout(timer);
     }
 
     // Load Twitter embed script
     if (embed.type === 'twitter' && !embed.embedCode) {
-      if (window.twttr) {
-        window.twttr.widgets.load();
-      } else {
-        const script = document.createElement('script');
-        script.src = 'https://platform.twitter.com/widgets.js';
-        script.async = true;
-        document.body.appendChild(script);
-      }
+      const loadTwitter = () => {
+        if (window.twttr) {
+          setTimeout(() => {
+            window.twttr.widgets.load();
+          }, 100);
+        } else {
+          const script = document.createElement('script');
+          script.src = 'https://platform.twitter.com/widgets.js';
+          script.async = true;
+          script.onload = () => {
+            setTimeout(() => {
+              if (window.twttr) {
+                window.twttr.widgets.load();
+              }
+            }, 100);
+          };
+          document.body.appendChild(script);
+        }
+      };
+      loadTwitter();
+      
+      // Retry after a delay
+      const timer = setTimeout(loadTwitter, 1000);
+      return () => clearTimeout(timer);
     }
 
     // Load TikTok embed script
@@ -40,7 +72,7 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
         document.body.appendChild(script);
       }
     }
-  }, [embed.type, embed.embedCode]);
+  }, [embed.type, embed.embedCode, embed.url]);
 
   // If custom embed code is provided, use it
   if (embed.embedCode) {
@@ -70,17 +102,38 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
         return (
           <blockquote
             className="instagram-media"
+            data-instgrm-captioned
             data-instgrm-permalink={embed.url}
             data-instgrm-version="14"
-            style={{ maxWidth: '540px', margin: '0 auto' }}
-          />
+            style={{ 
+              background: '#FFF',
+              border: '0',
+              borderRadius: '3px',
+              boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
+              margin: '1px auto',
+              maxWidth: '540px',
+              minWidth: '326px',
+              padding: '0',
+              width: 'calc(100% - 2px)'
+            }}
+          >
+            <a href={embed.url} target="_blank" rel="noopener noreferrer">
+              View this post on Instagram
+            </a>
+          </blockquote>
         );
 
       case 'twitter':
       case 'x':
         return (
-          <blockquote className="twitter-tweet" data-theme="light">
-            <a href={embed.url}>Loading tweet...</a>
+          <blockquote 
+            className="twitter-tweet" 
+            data-theme="light"
+            data-dnt="true"
+          >
+            <a href={embed.url} target="_blank" rel="noopener noreferrer">
+              View this post on Twitter
+            </a>
           </blockquote>
         );
 

@@ -48,6 +48,7 @@ export interface Article {
   embeds?: Embed[];
   author: Author;
   category?: Category | null;
+  categories?: Category[]; // Multiple categories support
   tags?: string[];
   status: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;
@@ -108,6 +109,7 @@ export interface CreateArticleData {
   embeds?: Embed[];
   authorId: string;
   categoryId?: string;
+  categoryIds?: string[]; // Multiple categories support
   tags?: string[];
   status: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;

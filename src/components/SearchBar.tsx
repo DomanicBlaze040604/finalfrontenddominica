@@ -21,9 +21,9 @@ const SearchBar = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto my-8 px-4">
+    <div className="max-w-3xl mx-auto px-4">
       <form onSubmit={handleSearch} className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         <Input
           id="search-query"
           name="q"
@@ -32,7 +32,7 @@ const SearchBar = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoComplete="off"
-          className="pl-10 pr-20 h-12 text-base"
+          className="pl-12 pr-24 h-12 text-base border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary bg-white"
         />
         {searchQuery && (
           <Button
@@ -40,7 +40,7 @@ const SearchBar = () => {
             variant="ghost"
             size="sm"
             onClick={clearSearch}
-            className="absolute right-12 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted"
+            className="absolute right-20 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -48,7 +48,7 @@ const SearchBar = () => {
         <Button
           type="submit"
           size="sm"
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-3"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-9 px-4 bg-primary hover:bg-primary/90"
           disabled={!searchQuery.trim()}
         >
           Search

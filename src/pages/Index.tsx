@@ -8,6 +8,7 @@ import LatestNews from "@/components/LatestNews";
 import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import { BreakingNewsBanner } from "@/components/BreakingNewsBanner";
+import BreakingNewsPanel from "@/components/BreakingNewsPanel";
 import { SafeComponent } from "@/components/SafeComponent";
 
 const Index = () => {
@@ -46,7 +47,7 @@ const Index = () => {
   const topCategories = categories.slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <SafeComponent componentName="BreakingNewsBanner">
         <BreakingNewsBanner />
       </SafeComponent>
@@ -56,43 +57,72 @@ const Index = () => {
       </SafeComponent>
       
       <main className="flex-1">
-        <SafeComponent componentName="SearchBar">
-          <SearchBar />
-        </SafeComponent>
-        
-        <div 
-          ref={latestNewsObserver.ref}
-          className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
-        >
-          <SafeComponent componentName="LatestNews">
-            <LatestNews />
-          </SafeComponent>
-        </div>
-        
-        <div 
-          ref={featuredObserver.ref}
-          className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
-        >
-          <SafeComponent componentName="FeaturedStory">
-            <FeaturedStory />
+        {/* Search Bar - Minimal and Clean */}
+        <div className="bg-gray-50 border-b border-gray-200 py-6">
+          <SafeComponent componentName="SearchBar">
+            <SearchBar />
           </SafeComponent>
         </div>
 
-        {/* Category Sections */}
-        {topCategories && topCategories.length > 0 && topCategories.map((category) => {
+        {/* Breaking News Panel - Prominent but Clean */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="container mx-auto px-4 py-6">
+            <SafeComponent componentName="BreakingNewsPanel">
+              <BreakingNewsPanel />
+            </SafeComponent>
+          </div>
+        </div>
+        
+        {/* Featured Story - Hero Section */}
+        <div className="bg-white">
+          <div className="container mx-auto px-4 py-8">
+            <div 
+              ref={featuredObserver.ref}
+              className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
+            >
+              <SafeComponent componentName="FeaturedStory">
+                <FeaturedStory />
+              </SafeComponent>
+            </div>
+          </div>
+        </div>
+
+        {/* Latest News - Grid Layout */}
+        <div className="bg-gray-50 border-y border-gray-200">
+          <div className="container mx-auto px-4 py-12">
+            <div 
+              ref={latestNewsObserver.ref}
+              className={`section-fade-in ${latestNewsObserver.isVisible ? 'visible' : ''}`}
+            >
+              <SafeComponent componentName="LatestNews">
+                <LatestNews />
+              </SafeComponent>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Sections - Clean Separation */}
+        {topCategories && topCategories.length > 0 && topCategories.map((category, index) => {
           if (!category || !category.id || !category.slug) {
             console.warn('Invalid category data:', category);
             return null;
           }
           return (
-            <SafeComponent key={category.id} componentName={`CategorySection-${category.slug}`}>
-              <CategorySection
-                categorySlug={category.slug}
-                categoryName={category.name || 'Uncategorized'}
-                categoryColor={category.color || '#000000'}
-                limit={4}
-              />
-            </SafeComponent>
+            <div 
+              key={category.id} 
+              className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-gray-200`}
+            >
+              <div className="container mx-auto px-4 py-12">
+                <SafeComponent componentName={`CategorySection-${category.slug}`}>
+                  <CategorySection
+                    categorySlug={category.slug}
+                    categoryName={category.name || 'Uncategorized'}
+                    categoryColor={category.color || '#000000'}
+                    limit={4}
+                  />
+                </SafeComponent>
+              </div>
+            </div>
           );
         })}
       </main>
