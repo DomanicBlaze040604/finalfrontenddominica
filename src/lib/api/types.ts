@@ -6,6 +6,7 @@ export interface Category {
   displayOrder: number;
   color: string;
   icon: string;
+  isPinned?: boolean;
   createdAt: string;
   updatedAt: string;
 }

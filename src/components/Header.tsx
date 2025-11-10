@@ -13,6 +13,9 @@ const Header = () => {
   });
 
   const categories = categoriesData?.success ? categoriesData.data : [];
+  
+  // Filter to show only pinned categories
+  const pinnedCategories = categories.filter((cat: any) => cat.isPinned);
 
   return <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="container mx-auto px-4">
@@ -57,7 +60,7 @@ const Header = () => {
           >
             Home
           </Link>
-          {categories.map((category) => (
+          {pinnedCategories.map((category) => (
             <Link 
               key={category.id}
               to={`/category/${category.slug}`}

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Edit, Trash2, Layers, FileText } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Layers, FileText, Pin, PinOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -100,6 +100,27 @@ const CategoriesManager = () => {
       toast({
         title: "Error",
         description: error.response?.data?.message || "Failed to delete category",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const togglePinMutation = useMutation({
+    mutationFn: ({ id, isPinned }: { id: string; isPinned: boolean }) => 
+      categoriesApi.update(id, { isPinned: !isPinned }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: variables.isPinned ? "Category Unpinned" : "Category Pinned",
+        description: variables.isPinned 
+          ? "Category removed from header navigation" 
+          : "Category added to header navigation",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update category",
         variant: "destructive",
       });
     },
@@ -302,6 +323,24 @@ const CategoriesManager = () => {
                         </div>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                        <Button
+                          variant={category.isPinned ? "default" : "outline"}
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePinMutation.mutate({ 
+                              id: category.id, 
+                              isPinned: category.isPinned || false 
+                            });
+                          }}
+                          className={category.isPinned 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-primary hover:text-primary-foreground"
+                          }
+                          title={category.isPinned ? "Unpin from header" : "Pin to header"}
+                        >
+                          {category.isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
