@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -20,12 +19,7 @@ const Header = () => {
         {/* Top bar with centered logo */}
         <div className="flex items-center justify-between py-6 md:py-8">
           {/* Left spacer for balance */}
-          <div className="flex items-center gap-2 w-32 md:w-48">
-            <Button variant="ghost" size="icon" className="hover-scale">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-          </div>
+          <div className="w-32 md:w-48"></div>
           
           {/* Centered Logo */}
           <Link to="/" className="group flex-shrink-0">

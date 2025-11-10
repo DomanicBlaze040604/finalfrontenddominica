@@ -95,10 +95,39 @@ export const EmbedRenderer = ({ content }: EmbedRendererProps) => {
       }
     };
 
+    // Load and process Facebook embeds
+    const loadFacebook = () => {
+      const hasFacebook = content.includes('fb-post') || content.includes('facebook.com');
+      if (!hasFacebook) return;
+
+      if (!(window as any).FB) {
+        const script = document.createElement('script');
+        script.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0';
+        script.async = true;
+        script.defer = true;
+        script.crossOrigin = 'anonymous';
+        script.onload = () => {
+          setTimeout(() => {
+            if ((window as any).FB?.XFBML) {
+              (window as any).FB.XFBML.parse();
+            }
+          }, 300);
+        };
+        document.body.appendChild(script);
+      } else {
+        setTimeout(() => {
+          if ((window as any).FB?.XFBML) {
+            (window as any).FB.XFBML.parse();
+          }
+        }, 300);
+      }
+    };
+
     // Load all embed scripts
     loadTwitter();
     loadInstagram();
     loadTikTok();
+    loadFacebook();
 
     // Aggressive retry processing - try every second for 10 seconds
     const retryTimers: NodeJS.Timeout[] = [];

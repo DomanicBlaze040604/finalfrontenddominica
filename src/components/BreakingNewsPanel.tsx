@@ -63,6 +63,7 @@ const BreakingNewsPanel = () => {
                       {new Date(article.publishedAt).toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
+                        timeZone: 'America/Dominica',
                       })} AST
                     </span>
                   )}

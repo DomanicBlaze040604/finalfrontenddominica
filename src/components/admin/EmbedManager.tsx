@@ -55,7 +55,10 @@ export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
           <div>
             <CardTitle>Social Media Embeds</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Add Instagram, YouTube, Twitter, TikTok, Spotify, and more
+              Add Instagram, YouTube, Twitter, TikTok, Spotify, Facebook, and more. Embeds will appear at the end of your article.
+            </p>
+            <p className="text-xs text-primary mt-1 font-medium">
+              ✨ This is the recommended way to add social media embeds - they work reliably every time!
             </p>
           </div>
           <Button type="button" onClick={addEmbed} size="sm" className="gap-2">

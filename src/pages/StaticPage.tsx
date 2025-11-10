@@ -69,6 +69,7 @@ const StaticPage = () => {
               Last updated: {new Date(page.updatedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
+                timeZone: 'America/Dominica',
                 day: 'numeric'
               })}
             </p>

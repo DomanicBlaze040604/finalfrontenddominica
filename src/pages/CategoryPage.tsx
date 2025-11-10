@@ -29,9 +29,30 @@ const CategoryPageContent = () => {
     queryFn: async () => {
       try {
         console.log('Fetching articles for category:', slug);
-        // Try the category-specific endpoint first
-        const result = await articlesApi.getByCategory(slug!, { limit: 20, status: "published" });
+        // Fetch more articles to filter
+        const result = await articlesApi.getByCategory(slug!, { limit: 100, status: "published" });
         console.log('Category articles result:', result);
+        
+        // Filter to include articles with this category in ANY of their categories
+        if (result.success && Array.isArray(result.data)) {
+          const filtered = result.data.filter((article: any) => {
+            // Check if category matches primary category
+            if (article.category?.slug === slug) return true;
+            
+            // Check if category is in additional categories array
+            if (article.categories && Array.isArray(article.categories)) {
+              return article.categories.some((cat: any) => cat.slug === slug);
+            }
+            
+            return false;
+          });
+          
+          return {
+            success: true,
+            data: filtered.slice(0, 20)
+          };
+        }
+        
         return result;
       } catch (error) {
         console.error('Category endpoint failed:', error);
@@ -125,7 +146,7 @@ const CategoryPageContent = () => {
               excerpt={article.excerpt || ""}
               imageUrl={article.featuredImage || "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=400&fit=crop"}
               category={article.category?.name || categoryName}
-              date={new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              date={new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Dominica' })}
               author={article.author.name}
             />
           ))}

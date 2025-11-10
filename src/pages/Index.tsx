@@ -73,22 +73,8 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Featured Story - Hero Section */}
-        <div className="bg-white">
-          <div className="container mx-auto px-4 py-8">
-            <div 
-              ref={featuredObserver.ref}
-              className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
-            >
-              <SafeComponent componentName="FeaturedStory">
-                <FeaturedStory />
-              </SafeComponent>
-            </div>
-          </div>
-        </div>
-
         {/* Latest News - Grid Layout */}
-        <div className="bg-gray-50 border-y border-gray-200">
+        <div className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-12">
             <div 
               ref={latestNewsObserver.ref}
@@ -96,6 +82,20 @@ const Index = () => {
             >
               <SafeComponent componentName="LatestNews">
                 <LatestNews />
+              </SafeComponent>
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Story - Hero Section */}
+        <div className="bg-gray-50 border-b border-gray-200">
+          <div className="container mx-auto px-4 py-12">
+            <div 
+              ref={featuredObserver.ref}
+              className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
+            >
+              <SafeComponent componentName="FeaturedStory">
+                <FeaturedStory />
               </SafeComponent>
             </div>
           </div>

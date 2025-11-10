@@ -71,7 +71,8 @@ const SearchResults = () => {
                   category={article.category?.name || "News"}
                   date={new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { 
                     month: 'long', 
-                    day: 'numeric', 
+                    day: 'numeric',
+                    timeZone: 'America/Dominica', 
                     year: 'numeric' 
                   })}
                   author={article.author.name}

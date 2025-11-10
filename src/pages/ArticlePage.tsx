@@ -116,7 +116,7 @@ const ArticlePageContent = () => {
             <span className="font-medium">{article.author.name}</span>
             <span>•</span>
             <time dateTime={publishedDate.toISOString()}>
-              {publishedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} | {publishedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} AST
+              {publishedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Dominica' })} | {publishedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Dominica' })} AST
             </time>
             {article.views && article.views > 0 && (
               <>
