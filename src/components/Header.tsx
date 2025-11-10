@@ -20,28 +20,28 @@ const Header = () => {
   return <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="container mx-auto px-4">
         {/* Top bar with centered logo */}
-        <div className="flex items-center justify-between py-6 md:py-8">
+        <div className="flex items-center justify-between py-3 sm:py-4 md:py-6 lg:py-8">
           {/* Left spacer for balance */}
-          <div className="w-32 md:w-48"></div>
+          <div className="w-16 sm:w-24 md:w-32 lg:w-48"></div>
           
           {/* Centered Logo */}
           <Link to="/" className="group flex-shrink-0">
             <img 
               src="/logo.png" 
               alt="Dominica News" 
-              className="h-20 md:h-28 w-auto transition-all duration-300 group-hover:scale-105"
+              className="h-12 sm:h-16 md:h-20 lg:h-28 w-auto transition-all duration-300 group-hover:scale-105"
             />
           </Link>
           
           {/* Right buttons */}
-          <div className="flex items-center gap-2 w-32 md:w-48 justify-end">
-            <Link to="/register">
-              <Button variant="default" size="sm" className="hidden sm:inline-flex hover-scale">
+          <div className="flex items-center gap-1 sm:gap-2 w-16 sm:w-24 md:w-32 lg:w-48 justify-end">
+            <Link to="/register" className="hidden sm:inline-flex">
+              <Button variant="default" size="sm" className="hover-scale text-xs sm:text-sm">
                 Register
               </Button>
             </Link>
-            <Link to="/admin/login">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex hover-scale">
+            <Link to="/admin/login" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" className="hover-scale text-xs sm:text-sm">
                 Sign In
               </Button>
             </Link>
@@ -49,10 +49,10 @@ const Header = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex items-center justify-center gap-1 border-t border-border overflow-x-auto">
+        <nav className="flex items-center gap-0.5 sm:gap-1 border-t border-border overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:justify-center">
           <Link 
             to="/" 
-            className={`px-4 py-3 text-sm font-medium hover:text-primary transition-all duration-300 border-b-2 ${
+            className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium hover:text-primary transition-all duration-300 border-b-2 whitespace-nowrap flex-shrink-0 ${
               location.pathname === '/' 
                 ? 'border-primary' 
                 : 'border-transparent hover:border-primary'
@@ -64,7 +64,7 @@ const Header = () => {
             <Link 
               key={category.id}
               to={`/category/${category.slug}`}
-              className={`px-4 py-3 text-sm font-medium hover:text-primary transition-all duration-300 border-b-2 whitespace-nowrap ${
+              className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium hover:text-primary transition-all duration-300 border-b-2 whitespace-nowrap flex-shrink-0 ${
                 location.pathname === `/category/${category.slug}` 
                   ? 'border-primary' 
                   : 'border-transparent hover:border-primary'

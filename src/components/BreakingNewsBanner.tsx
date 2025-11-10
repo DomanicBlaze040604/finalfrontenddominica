@@ -69,22 +69,22 @@ export function BreakingNewsBanner() {
     <div
       className={`sticky top-0 z-50 ${priorityColors[currentNews.priority]} border-b border-black/10`}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center gap-3 py-2.5">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+      <div className="container mx-auto px-2 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-3 py-2">
+          <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
           
-          <div className="flex-1 flex items-center gap-2 min-w-0">
-            <span className="font-bold text-xs uppercase tracking-wider">Breaking News</span>
+          <div className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="font-bold text-[10px] sm:text-xs uppercase tracking-wider flex-shrink-0">Breaking</span>
             <span className="hidden sm:inline text-sm">•</span>
             {currentNews.link ? (
               <Link
                 to={currentNews.link}
-                className="font-medium text-sm hover:underline truncate"
+                className="font-medium text-xs sm:text-sm hover:underline truncate"
               >
                 {currentNews.title}
               </Link>
             ) : (
-              <span className="font-medium text-sm truncate">{currentNews.title}</span>
+              <span className="font-medium text-xs sm:text-sm truncate">{currentNews.title}</span>
             )}
           </div>
 
@@ -107,9 +107,9 @@ export function BreakingNewsBanner() {
             variant="ghost"
             size="icon"
             onClick={() => setIsVisible(false)}
-            className="h-6 w-6 flex-shrink-0 hover:bg-black/10"
+            className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 hover:bg-black/10 p-0"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </Button>
         </div>
       </div>

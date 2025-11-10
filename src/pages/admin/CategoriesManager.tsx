@@ -106,8 +106,10 @@ const CategoriesManager = () => {
   });
 
   const togglePinMutation = useMutation({
-    mutationFn: ({ id, isPinned }: { id: string; isPinned: boolean }) => 
-      categoriesApi.update(id, { isPinned: !isPinned }),
+    mutationFn: async ({ id, isPinned }: { id: string; isPinned: boolean }) => {
+      console.log('Toggling pin for category:', id, 'Current isPinned:', isPinned, 'New value:', !isPinned);
+      return categoriesApi.update(id, { isPinned: !isPinned });
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
@@ -118,9 +120,10 @@ const CategoriesManager = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Pin toggle error:', error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to update category",
+        description: error.response?.data?.message || error.message || "Failed to update category. Check backend logs.",
         variant: "destructive",
       });
     },
