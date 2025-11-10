@@ -62,11 +62,29 @@ const LiveUpdatesManager = () => {
       resetForm();
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create live update',
-        variant: 'destructive',
-      });
+      console.error('Create live update error:', error);
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      
+      if (status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to create live updates',
+          variant: 'destructive',
+        });
+      } else if (status === 404) {
+        toast({
+          title: 'Backend Not Ready',
+          description: 'Live Updates API endpoint not found. Please ensure backend is deployed with Live Updates feature.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error Creating Live Update',
+          description: message || 'Failed to create live update. Check console for details.',
+          variant: 'destructive',
+        });
+      }
     },
   });
 
