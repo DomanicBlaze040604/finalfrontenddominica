@@ -78,7 +78,7 @@ export interface LiveUpdatesParams {
 }
 
 export const liveUpdatesApi = {
-  // Public endpoints
+  // Public endpoints (no /api prefix - handled by apiClient baseURL)
   getAll: async (params?: LiveUpdatesParams) => {
     const queryParams = new URLSearchParams();
     if (params?.status) queryParams.append('status', params.status);
@@ -87,48 +87,48 @@ export const liveUpdatesApi = {
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     
     const query = queryParams.toString();
-    return apiClient.get(`/api/live-updates${query ? `?${query}` : ''}`) as Promise<ApiResponse<LiveUpdate[]>>;
+    return apiClient.get(`/live-updates${query ? `?${query}` : ''}`) as Promise<ApiResponse<LiveUpdate[]>>;
   },
 
   getActive: async (limit = 5) => {
-    return apiClient.get(`/api/live-updates/active?limit=${limit}`) as Promise<ApiResponse<LiveUpdate[]>>;
+    return apiClient.get(`/live-updates/active?limit=${limit}`) as Promise<ApiResponse<LiveUpdate[]>>;
   },
 
   getByType: async (type: string, limit = 10) => {
-    return apiClient.get(`/api/live-updates/type/${type}?limit=${limit}`) as Promise<ApiResponse<LiveUpdate[]>>;
+    return apiClient.get(`/live-updates/type/${type}?limit=${limit}`) as Promise<ApiResponse<LiveUpdate[]>>;
   },
 
   getById: async (id: string) => {
-    return apiClient.get(`/api/live-updates/${id}`) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.get(`/live-updates/${id}`) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   // Admin endpoints
   create: async (data: CreateLiveUpdateData) => {
-    return apiClient.post('/api/admin/live-updates', data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.post('/admin/live-updates', data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   addUpdate: async (id: string, data: AddUpdateData) => {
-    return apiClient.post(`/api/admin/live-updates/${id}/updates`, data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.post(`/admin/live-updates/${id}/updates`, data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   update: async (id: string, data: Partial<LiveUpdate>) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/admin/live-updates/${id}`, data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   delete: async (id: string) => {
-    return apiClient.delete(`/api/admin/live-updates/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/admin/live-updates/${id}`) as Promise<ApiResponse<void>>;
   },
 
   endLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'ended' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/admin/live-updates/${id}`, { status: 'ended' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   pauseLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'paused' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/admin/live-updates/${id}`, { status: 'paused' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   resumeLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'active' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/admin/live-updates/${id}`, { status: 'active' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 };
 
