@@ -25,12 +25,12 @@ const CategorySection = ({
   const { data, isLoading, error } = useQuery({
     queryKey: ['categoryArticles', categorySlug, limit],
     queryFn: async () => {
-      // First try the category endpoint
-      const categoryData = await articlesApi.getByCategory(categorySlug, { limit: 50, status: 'published' });
+      // Fetch ALL articles and filter on frontend
+      const allArticles = await articlesApi.getAll({ limit: 100, status: 'published' });
       
-      // If we got articles, filter to include those with this category in ANY of their categories
-      if (categoryData.success && Array.isArray(categoryData.data)) {
-        const filtered = categoryData.data.filter((article: any) => {
+      if (allArticles.success && Array.isArray(allArticles.data)) {
+        // Filter to include articles with this category in primary OR additional categories
+        const filtered = allArticles.data.filter((article: any) => {
           // Check if category matches primary category
           if (article.category?.slug === categorySlug) return true;
           
@@ -48,7 +48,7 @@ const CategorySection = ({
         };
       }
       
-      return categoryData;
+      return allArticles;
     },
     retry: 1,
     retryDelay: 1000,

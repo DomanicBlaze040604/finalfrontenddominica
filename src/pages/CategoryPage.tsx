@@ -27,45 +27,35 @@ const CategoryPageContent = () => {
   const { data: articlesData, isLoading, error } = useQuery({
     queryKey: ["articles", "category", slug],
     queryFn: async () => {
-      try {
-        console.log('Fetching articles for category:', slug);
-        // Fetch more articles to filter
-        const result = await articlesApi.getByCategory(slug!, { limit: 100, status: "published" });
-        console.log('Category articles result:', result);
-        
-        // Filter to include articles with this category in ANY of their categories
-        if (result.success && Array.isArray(result.data)) {
-          const filtered = result.data.filter((article: any) => {
-            // Check if category matches primary category
-            if (article.category?.slug === slug) return true;
-            
-            // Check if category is in additional categories array
-            if (article.categories && Array.isArray(article.categories)) {
-              return article.categories.some((cat: any) => cat.slug === slug);
-            }
-            
-            return false;
-          });
+      console.log('Fetching articles for category:', slug);
+      
+      // Fetch ALL articles and filter on frontend
+      const allArticles = await articlesApi.getAll({ limit: 100, status: "published" });
+      console.log('All articles result:', allArticles);
+      
+      if (allArticles.success && Array.isArray(allArticles.data)) {
+        // Filter to include articles with this category in primary OR additional categories
+        const filtered = allArticles.data.filter((article: any) => {
+          // Check if category matches primary category
+          if (article.category?.slug === slug) return true;
           
-          return {
-            success: true,
-            data: filtered.slice(0, 20)
-          };
-        }
+          // Check if category is in additional categories array
+          if (article.categories && Array.isArray(article.categories)) {
+            return article.categories.some((cat: any) => cat.slug === slug);
+          }
+          
+          return false;
+        });
         
-        return result;
-      } catch (error) {
-        console.error('Category endpoint failed:', error);
-        // Fallback to regular articles endpoint with category filter
-        try {
-          const fallback = await articlesApi.getAll({ category: slug, limit: 20, status: "published" });
-          console.log('Fallback result:', fallback);
-          return fallback;
-        } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError);
-          throw fallbackError;
-        }
+        console.log(`Filtered ${filtered.length} articles for category ${slug}`);
+        
+        return {
+          success: true,
+          data: filtered.slice(0, 20)
+        };
       }
+      
+      return allArticles;
     },
     enabled: !!slug,
     retry: 1,
