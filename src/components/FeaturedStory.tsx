@@ -22,9 +22,9 @@ const FeaturedStory = () => {
 
   if (isLoading) {
     return (
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="font-display text-3xl font-bold mb-6">Featured Story</h2>
-        <Skeleton className="w-full h-[400px] rounded-lg" />
+      <section>
+        <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 md:mb-6">Featured Story</h2>
+        <Skeleton className="w-full h-[300px] md:h-[400px] rounded-lg" />
       </section>
     );
   }
@@ -36,9 +36,9 @@ const FeaturedStory = () => {
   const featuredArticles = data.data;
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      <h2 className="font-display text-3xl font-bold mb-6">Featured Story</h2>
-      <div className="space-y-6">
+    <section>
+      <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 md:mb-6">Featured Story</h2>
+      <div className="space-y-4 md:space-y-6">
         {featuredArticles.map((article) => (
           <ArticleCard
             key={article.id}

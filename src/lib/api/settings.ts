@@ -17,6 +17,7 @@ export interface SiteSettings {
   siteDescription?: string;
   contactEmail?: string;
   homepageSectionOrder?: 'featured-first' | 'latest-first';
+  homepageCategories?: string[]; // Array of category IDs to show on homepage in order
   updatedAt: string;
 }
 

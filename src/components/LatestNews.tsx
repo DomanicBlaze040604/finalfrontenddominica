@@ -22,9 +22,9 @@ const LatestNews = () => {
 
   if (isLoading) {
     return (
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="font-display text-3xl font-bold mb-6">Latest News</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section>
+        <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 md:mb-6">Latest News</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="w-full h-[350px] rounded-lg" />
           ))}
@@ -36,8 +36,8 @@ const LatestNews = () => {
   if (error || !data?.success) {
     console.error('Error details:', { error, data });
     return (
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="font-display text-3xl font-bold mb-6">Latest News</h2>
+      <section>
+        <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 md:mb-6">Latest News</h2>
         <div className="space-y-4">
           <p className="text-muted-foreground">Unable to load articles. Please try again later.</p>
           <details className="text-sm">
@@ -59,9 +59,9 @@ const LatestNews = () => {
   const articles = data.data;
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      <h2 className="font-display text-3xl font-bold mb-6">Latest News</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section>
+      <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 md:mb-6">Latest News</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {articles.map((article) => (
           <ArticleCard
             key={article.id}

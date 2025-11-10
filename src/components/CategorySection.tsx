@@ -81,15 +81,13 @@ const CategorySection = ({
 
   if (isLoading) {
     return (
-      <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-48 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-64 bg-muted rounded-lg"></div>
-              ))}
-            </div>
+      <section>
+        <div className="animate-pulse">
+          <div className="h-6 md:h-8 bg-muted rounded w-32 md:w-48 mb-4 md:mb-6"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-64 bg-muted rounded-lg"></div>
+            ))}
           </div>
         </div>
       </section>
@@ -102,28 +100,29 @@ const CategorySection = ({
   }
 
   return (
-    <section className="py-12 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div 
-              className="w-1 h-8 rounded-full"
-              style={{ backgroundColor: categoryColor }}
-            />
-            <h2 className="text-3xl font-bold">{categoryName}</h2>
-          </div>
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/category/${categorySlug}`)}
-            className="gap-2"
-          >
-            View All
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+    <section>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div 
+            className="w-1 h-6 md:h-8 rounded-full"
+            style={{ backgroundColor: categoryColor }}
+          />
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold">{categoryName}</h2>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/category/${categorySlug}`)}
+          className="gap-1 md:gap-2 text-xs md:text-sm"
+        >
+          <span className="hidden sm:inline">View All</span>
+          <span className="sm:hidden">All</span>
+          <ArrowRight className="h-3 w-3 md:h-4 md:w-4" />
+        </Button>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {articles.map((article) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {articles.map((article) => {
             // Safety checks for each article
             if (!article || !article.id || !article.slug || !article.title) {
               console.warn('Invalid article data:', article);
@@ -137,7 +136,7 @@ const CategorySection = ({
                 onClick={() => navigate(`/article/${article.slug}`)}
               >
                 {article.featuredImage && (
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-40 md:h-48 overflow-hidden">
                     <img
                       src={article.featuredImage}
                       alt={article.title || 'Article image'}
@@ -148,31 +147,31 @@ const CategorySection = ({
                       }}
                     />
                     <Badge
-                      className="absolute top-3 left-3"
+                      className="absolute top-2 left-2 md:top-3 md:left-3 text-xs"
                       style={{ backgroundColor: categoryColor }}
                     >
                       {categoryName}
                     </Badge>
                   </div>
                 )}
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                <CardContent className="p-3 md:p-4">
+                  <h3 className="font-semibold text-base md:text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {article.title}
                   </h3>
                   {article.excerpt && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3 line-clamp-2">
                       {article.excerpt}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 md:gap-3 text-xs text-muted-foreground">
                     {article.author && article.author.name && (
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {article.author.name}
+                      <span className="flex items-center gap-1 truncate">
+                        <User className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{article.author.name}</span>
                       </span>
                     )}
                     {article.publishedAt && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 flex-shrink-0">
                         <Calendar className="h-3 w-3" />
                         {(() => {
                           try {
@@ -191,7 +190,6 @@ const CategorySection = ({
             );
           })}
         </div>
-      </div>
     </section>
   );
 };

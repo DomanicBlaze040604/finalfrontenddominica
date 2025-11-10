@@ -123,6 +123,41 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
 
   // If custom embed code is provided, use it
   if (embed.embedCode) {
+    // Check if it's Twitter embed code
+    const isTwitterEmbed = embed.embedCode.includes('twitter-tweet') || embed.embedCode.includes('platform.twitter.com/widgets.js');
+    
+    useEffect(() => {
+      if (isTwitterEmbed) {
+        // Load Twitter widget for custom embed code
+        const loadTwitterWidget = () => {
+          if (window.twttr?.widgets) {
+            window.twttr.widgets.load();
+          } else {
+            const existingScript = document.querySelector('script[src*="platform.twitter.com/widgets.js"]');
+            if (!existingScript) {
+              const script = document.createElement('script');
+              script.src = 'https://platform.twitter.com/widgets.js';
+              script.async = true;
+              script.charset = 'utf-8';
+              document.body.appendChild(script);
+            }
+          }
+        };
+        
+        // Load immediately and retry
+        loadTwitterWidget();
+        const timer1 = setTimeout(loadTwitterWidget, 500);
+        const timer2 = setTimeout(loadTwitterWidget, 1500);
+        const timer3 = setTimeout(loadTwitterWidget, 3000);
+        
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+          clearTimeout(timer3);
+        };
+      }
+    }, [isTwitterEmbed, embed.embedCode]);
+    
     return (
       <div className="embed-container my-6">
         <div 
