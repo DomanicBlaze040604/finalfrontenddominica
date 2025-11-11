@@ -17,6 +17,7 @@ const Footer = () => {
   // Fallback static pages if API fails
   const staticPages = [
     { title: "About Us", slug: "about" },
+    { title: "Editorial Team", slug: "editorial" },
     { title: "Contact", slug: "contact" },
     { title: "Privacy Policy", slug: "privacy" },
     { title: "Terms of Service", slug: "terms" },

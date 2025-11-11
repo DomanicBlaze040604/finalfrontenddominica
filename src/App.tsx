@@ -32,6 +32,7 @@ import CategoryArticles from "./pages/admin/CategoryArticles";
 import LiveUpdatesManager from "./pages/admin/LiveUpdatesManager";
 import LiveUpdatePage from "./pages/LiveUpdatePage";
 import AuthorPage from "./pages/AuthorPage";
+import EditorialPage from "./pages/EditorialPage";
 import AuthTest from "./pages/admin/AuthTest";
 import UsersManager from "./pages/admin/UsersManager";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/author/:id" element={<AuthorPage />} />
+          <Route path="/editorial" element={<EditorialPage />} />
           <Route path="/live/:id" element={<LiveUpdatePage />} />
           
           {/* Auth Routes - MUST BE BEFORE CATCH-ALL */}

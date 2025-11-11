@@ -130,6 +130,10 @@ export const liveUpdatesApi = {
   resumeLive: async (id: string) => {
     return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'active' }) as Promise<ApiResponse<LiveUpdate>>;
   },
+
+  deleteUpdate: async (liveUpdateId: string, updateId: string) => {
+    return apiClient.delete(`/api/admin/live-updates/${liveUpdateId}/updates/${updateId}`) as Promise<ApiResponse<LiveUpdate>>;
+  },
 };
 
 export default liveUpdatesApi;

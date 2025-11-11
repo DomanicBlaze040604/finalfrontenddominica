@@ -3,6 +3,7 @@ export { default as categoriesApi } from './categories';
 export { default as authorsApi } from './authors';
 export { default as uploadsApi } from './uploads';
 export { default as pagesApi } from './pages';
+export { default as embedsApi } from './embeds';
 export { default as breakingNewsApi } from './breakingNews';
 export { default as tagsApi } from './tags';
 export { default as settingsApi } from './settings';

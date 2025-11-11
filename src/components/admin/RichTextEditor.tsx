@@ -149,37 +149,52 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
     }
   };
 
-  const addEmbed = () => {
+  const addEmbed = async () => {
     if (embedUrl || embedCode) {
       let embedHtml = '';
       
       if (embedCode) {
+        // User provided custom embed code
         embedHtml = embedCode;
       } else {
-        switch (embedType) {
-          case 'twitter':
-          case 'x':
-            embedHtml = `<blockquote class="twitter-tweet" data-dnt="true" data-theme="light"><p lang="en" dir="ltr"><a href="${embedUrl}">View this post on Twitter</a></p></blockquote>`;
-            break;
-          case 'instagram':
-            embedHtml = `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${embedUrl}" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px auto; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:16px;"><a href="${embedUrl}" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">View this post on Instagram</a></div></blockquote>`;
-            break;
-          case 'youtube':
-            const youtubeId = embedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
-            embedHtml = `<div class="video-responsive"><iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-            break;
-          case 'facebook':
-            embedHtml = `<div class="fb-post" data-href="${embedUrl}" data-width="500" data-show-text="true"><blockquote cite="${embedUrl}" class="fb-xfbml-parse-ignore"><a href="${embedUrl}">View post on Facebook</a></blockquote></div>`;
-            break;
-          case 'tiktok':
-            embedHtml = `<blockquote class="tiktok-embed" cite="${embedUrl}"><a href="${embedUrl}">View TikTok</a></blockquote>`;
-            break;
-          case 'spotify':
-            const spotifyUrl = embedUrl.replace('spotify.com/', 'spotify.com/embed/');
-            embedHtml = `<iframe src="${spotifyUrl}" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
-            break;
-          default:
-            embedHtml = `<div class="embed-container"><a href="${embedUrl}" target="_blank">${embedUrl}</a></div>`;
+        // Try to fetch from oEmbed API first
+        try {
+          const { embedsApi } = await import('@/lib/api');
+          const response = await embedsApi.fetchEmbed(embedUrl);
+          
+          if (response.success && response.data) {
+            embedHtml = response.data.html;
+            console.log('✅ Fetched embed from oEmbed API:', response.data.provider);
+          }
+        } catch (error) {
+          console.warn('⚠️ oEmbed fetch failed, using fallback:', error);
+          
+          // Fallback to manual embed generation
+          switch (embedType) {
+            case 'twitter':
+            case 'x':
+              embedHtml = `<blockquote class="twitter-tweet" data-dnt="true" data-theme="light"><p lang="en" dir="ltr"><a href="${embedUrl}">View this post on Twitter</a></p></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`;
+              break;
+            case 'instagram':
+              embedHtml = `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${embedUrl}" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px auto; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:16px;"><a href="${embedUrl}" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">View this post on Instagram</a></div></blockquote><script async src="//www.instagram.com/embed.js"></script>`;
+              break;
+            case 'youtube':
+              const youtubeId = embedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
+              embedHtml = `<div class="video-responsive" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/${youtubeId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+              break;
+            case 'facebook':
+              embedHtml = `<div class="fb-post" data-href="${embedUrl}" data-width="500" data-show-text="true"><blockquote cite="${embedUrl}" class="fb-xfbml-parse-ignore"><a href="${embedUrl}">View post on Facebook</a></blockquote></div><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0"></script>`;
+              break;
+            case 'tiktok':
+              embedHtml = `<blockquote class="tiktok-embed" cite="${embedUrl}" data-video-id="${embedUrl.split('/').pop()}"><a href="${embedUrl}">View TikTok</a></blockquote><script async src="https://www.tiktok.com/embed.js"></script>`;
+              break;
+            case 'spotify':
+              const spotifyUrl = embedUrl.replace('spotify.com/', 'spotify.com/embed/');
+              embedHtml = `<iframe src="${spotifyUrl}" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+              break;
+            default:
+              embedHtml = `<div class="embed-container" style="padding: 20px; border: 1px solid #ddd; border-radius: 8px; text-align: center;"><a href="${embedUrl}" target="_blank" rel="noopener noreferrer">${embedUrl}</a></div>`;
+          }
         }
       }
       

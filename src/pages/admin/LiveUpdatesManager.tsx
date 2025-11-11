@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { PlusCircle, Play, Pause, StopCircle, Trash2, Eye, MessageSquare, X } from 'lucide-react';
 
 const LiveUpdatesManager = () => {
@@ -321,6 +322,35 @@ const LiveUpdatesManager = () => {
                     Add Update
                   </Button>
                   
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Show updates list modal
+                      const updatesHtml = update.updates?.map((u: any, i: number) => `
+                        <div class="border-b pb-3 mb-3">
+                          <div class="text-sm text-gray-500">${new Date(u.timestamp).toLocaleString()}</div>
+                          <div class="mt-1">${u.content}</div>
+                        </div>
+                      `).join('') || 'No updates yet';
+                      
+                      const modal = document.createElement('div');
+                      modal.innerHTML = `
+                        <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">
+                          <div style="background:white;padding:24px;border-radius:8px;max-width:600px;max-height:80vh;overflow-y:auto">
+                            <h3 style="font-size:18px;font-weight:bold;margin-bottom:16px">${update.title} - Updates</h3>
+                            ${updatesHtml}
+                            <button onclick="this.closest('div[style*=fixed]').parentElement.remove()" style="margin-top:16px;padding:8px 16px;background:#000;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button>
+                          </div>
+                        </div>
+                      `;
+                      document.body.appendChild(modal);
+                    }}
+                    title="View all updates"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  
                   {update.status === 'active' && (
                     <Button
                       size="sm"
@@ -611,12 +641,19 @@ const LiveUpdatesManager = () => {
                   </p>
                 </div>
                 
-                <Textarea
-                  placeholder="What's happening now?"
-                  value={newUpdateContent}
-                  onChange={(e) => setNewUpdateContent(e.target.value)}
-                  rows={4}
-                />
+                <div>
+                  <Label>Update Content</Label>
+                  <div className="mt-2">
+                    <RichTextEditor
+                      content={newUpdateContent}
+                      onChange={setNewUpdateContent}
+                      placeholder="What's happening now? Use formatting to make it stand out..."
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use bold, italic, lists, and links to format your update
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
