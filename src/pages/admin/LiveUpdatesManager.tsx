@@ -599,12 +599,35 @@ const LiveUpdatesManager = () => {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
-                      if (newUpdateContent.trim() && formData.authorId) {
-                        addUpdateMutation.mutate({
-                          id: selectedUpdate.id,
-                          content: newUpdateContent,
-                          authorId: formData.authorId || authors[0]?.id,
-                        });
+                      if (newUpdateContent.trim()) {
+                        // Get logged-in user's ID from localStorage
+                        const userStr = localStorage.getItem('user');
+                        let authorId = formData.authorId;
+                        
+                        if (!authorId && userStr) {
+                          try {
+                            const user = JSON.parse(userStr);
+                            // Try to find author by email
+                            const matchingAuthor = authors.find((a: any) => a.email === user.email);
+                            authorId = matchingAuthor?.id || authors[0]?.id;
+                          } catch (e) {
+                            authorId = authors[0]?.id;
+                          }
+                        }
+                        
+                        if (authorId) {
+                          addUpdateMutation.mutate({
+                            id: selectedUpdate.id,
+                            content: newUpdateContent,
+                            authorId: authorId,
+                          });
+                        } else {
+                          toast({
+                            title: 'Error',
+                            description: 'Please select an author first',
+                            variant: 'destructive',
+                          });
+                        }
                       }
                     }}
                     disabled={!newUpdateContent.trim() || addUpdateMutation.isPending}

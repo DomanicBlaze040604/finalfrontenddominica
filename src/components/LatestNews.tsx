@@ -72,6 +72,7 @@ const LatestNews = () => {
             category={article.category?.name || "News"}
             date={new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             author={article.author.name}
+            authorId={article.author.id || article.author._id}
           />
         ))}
       </div>
