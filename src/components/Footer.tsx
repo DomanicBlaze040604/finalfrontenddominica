@@ -14,16 +14,32 @@ const Footer = () => {
 
   const footerPages = footerPagesData?.success ? footerPagesData.data : [];
 
+  // Always include Editorial Team link
+  const editorialLink = { title: "Editorial Team", slug: "editorial" };
+  
   // Fallback static pages if API fails
   const staticPages = [
     { title: "About Us", slug: "about" },
-    { title: "Editorial Team", slug: "editorial" },
+    editorialLink,
     { title: "Contact", slug: "contact" },
     { title: "Privacy Policy", slug: "privacy" },
     { title: "Terms of Service", slug: "terms" },
   ];
 
-  const pagesToShow = footerPages.length > 0 ? footerPages : staticPages;
+  // Combine API pages with Editorial Team link (if not already present)
+  let pagesToShow = footerPages.length > 0 ? footerPages : staticPages;
+  
+  // Always ensure Editorial Team is in the list
+  if (footerPages.length > 0 && !footerPages.some(p => p.slug === 'editorial')) {
+    // Insert Editorial Team after About Us (or at position 1)
+    const aboutIndex = pagesToShow.findIndex(p => p.slug === 'about');
+    const insertIndex = aboutIndex >= 0 ? aboutIndex + 1 : 1;
+    pagesToShow = [
+      ...pagesToShow.slice(0, insertIndex),
+      editorialLink,
+      ...pagesToShow.slice(insertIndex)
+    ];
+  }
 
   return (
     <footer className="bg-primary text-primary-foreground mt-16">
