@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { articlesApi } from "@/lib/api";
@@ -5,13 +6,15 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Edit, Trash2, Eye } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle, Edit, Trash2, Eye, FileText, Clock, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 const ArticlesList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("published");
   
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "articles"],
@@ -55,11 +58,19 @@ const ArticlesList = () => {
     });
     
   const draftArticles = articles
-    .filter((article: any) => article.status === 'draft' || article.status === 'scheduled')
+    .filter((article: any) => article.status === 'draft')
     .sort((a: any, b: any) => {
       const dateA = new Date(a.updatedAt || a.createdAt).getTime();
       const dateB = new Date(b.updatedAt || b.createdAt).getTime();
       return dateB - dateA; // Latest first
+    });
+    
+  const scheduledArticles = articles
+    .filter((article: any) => article.status === 'scheduled')
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.scheduledAt || a.createdAt).getTime();
+      const dateB = new Date(b.scheduledAt || b.createdAt).getTime();
+      return dateA - dateB; // Earliest first (next to publish)
     });
 
   const renderArticleCard = (article: any) => (
@@ -163,47 +174,76 @@ const ArticlesList = () => {
             </Link>
           </Card>
         ) : (
-          <>
-            {/* Published Articles Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Published Articles</h2>
-                <Badge variant="default" className="text-sm">
-                  {publishedArticles.length} {publishedArticles.length === 1 ? 'article' : 'articles'}
-                </Badge>
-              </div>
-              
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-3">
+              <TabsTrigger value="published" className="gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Published
+                <Badge variant="secondary" className="ml-1">{publishedArticles.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="drafts" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Drafts
+                <Badge variant="secondary" className="ml-1">{draftArticles.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="scheduled" className="gap-2">
+                <Clock className="h-4 w-4" />
+                Scheduled
+                <Badge variant="secondary" className="ml-1">{scheduledArticles.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Published Tab */}
+            <TabsContent value="published" className="space-y-4">
               {publishedArticles.length > 0 ? (
                 <div className="space-y-4">
                   {publishedArticles.map(renderArticleCard)}
                 </div>
               ) : (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground">No published articles yet</p>
+                <Card className="p-12 text-center">
+                  <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">No published articles yet</p>
+                  <Link to="/admin/articles/new">
+                    <Button>Publish Your First Article</Button>
+                  </Link>
                 </Card>
               )}
-            </div>
+            </TabsContent>
 
-            {/* Draft Articles Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Drafts & Scheduled</h2>
-                <Badge variant="secondary" className="text-sm">
-                  {draftArticles.length} {draftArticles.length === 1 ? 'article' : 'articles'}
-                </Badge>
-              </div>
-              
+            {/* Drafts Tab */}
+            <TabsContent value="drafts" className="space-y-4">
               {draftArticles.length > 0 ? (
                 <div className="space-y-4">
                   {draftArticles.map(renderArticleCard)}
                 </div>
               ) : (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground">No drafts or scheduled articles</p>
+                <Card className="p-12 text-center">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">No draft articles</p>
+                  <Link to="/admin/articles/new">
+                    <Button>Create a Draft</Button>
+                  </Link>
                 </Card>
               )}
-            </div>
-          </>
+            </TabsContent>
+
+            {/* Scheduled Tab */}
+            <TabsContent value="scheduled" className="space-y-4">
+              {scheduledArticles.length > 0 ? (
+                <div className="space-y-4">
+                  {scheduledArticles.map(renderArticleCard)}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">No scheduled articles</p>
+                  <p className="text-sm text-muted-foreground">
+                    Schedule articles to publish automatically at a future date
+                  </p>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </AdminLayout>

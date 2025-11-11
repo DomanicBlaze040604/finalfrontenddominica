@@ -137,11 +137,17 @@ const LiveUpdatesManager = () => {
   const deleteUpdateMutation = useMutation({
     mutationFn: ({ liveUpdateId, updateId }: { liveUpdateId: string; updateId: string }) =>
       liveUpdatesApi.deleteUpdate(liveUpdateId, updateId),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update the modal data immediately with the response
+      if (data?.success && data.data) {
+        setViewUpdatesModal(data.data);
+      }
+      // Then invalidate queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ['admin', 'liveUpdates'] });
       toast({ title: 'Update deleted successfully!' });
     },
     onError: (error: any) => {
+      console.error('Delete update error:', error);
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to delete update',
@@ -434,11 +440,11 @@ const LiveUpdatesManager = () => {
 
                 <div>
                   <Label>Initial Content *</Label>
-                  <Textarea
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
                     placeholder="Match starting soon..."
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={3}
+                    className="min-h-[200px]"
                   />
                 </div>
 
