@@ -155,10 +155,22 @@ const LiveUpdatesManager = () => {
   };
 
   const handleCreate = () => {
+    // Check authentication before creating
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Your session has expired. Please log in again.',
+        variant: 'destructive',
+      });
+      window.location.href = '/admin/login';
+      return;
+    }
+    
     if (!formData.title || !formData.content || !formData.authorId) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields',
+        description: 'Please fill in all required fields (Title, Content, Author)',
         variant: 'destructive',
       });
       return;

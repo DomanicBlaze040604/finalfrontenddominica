@@ -25,13 +25,14 @@ import {
   Calendar,
   Trash2,
   Radio,
+  UserCog,
 } from "lucide-react";
 
 const mainItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, exact: true },
   { title: "Articles", url: "/admin/articles", icon: FileText },
   { title: "Categories", url: "/admin/categories", icon: Layers },
-  { title: "Authors", url: "/admin/authors", icon: Users },
+  { title: "Authors", url: "/admin/authors", icon: UserCog },
 ];
 
 const contentItems = [
@@ -43,6 +44,7 @@ const contentItems = [
 ];
 
 const settingsItems = [
+  { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Social Media", url: "/admin/social-media", icon: Share2 },
   { title: "Site Settings", url: "/admin/settings", icon: Settings },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },

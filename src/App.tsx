@@ -32,6 +32,8 @@ import CategoryArticles from "./pages/admin/CategoryArticles";
 import LiveUpdatesManager from "./pages/admin/LiveUpdatesManager";
 import LiveUpdatePage from "./pages/LiveUpdatePage";
 import AuthorPage from "./pages/AuthorPage";
+import AuthTest from "./pages/admin/AuthTest";
+import UsersManager from "./pages/admin/UsersManager";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
@@ -163,6 +165,16 @@ const App = () => (
           <Route path="/admin/live-updates" element={
             <ProtectedRoute>
               <LiveUpdatesManager />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/auth-test" element={
+            <ProtectedRoute>
+              <AuthTest />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute>
+              <UsersManager />
             </ProtectedRoute>
           } />
           
