@@ -744,8 +744,14 @@ const LiveUpdatesManager = () => {
                       variant="ghost"
                       onClick={() => {
                         if (confirm('Delete this update?')) {
-                          // The update ID is the timestamp
-                          const updateId = new Date(u.timestamp).getTime().toString();
+                          // Use the update ID (converted from _id by toJSON transform)
+                          const updateId = u.id;
+                          if (!updateId) {
+                            console.error('Update ID not found:', u);
+                            alert('Cannot delete: Update ID not found. Please refresh and try again.');
+                            return;
+                          }
+                          console.log('Deleting update:', { liveUpdateId: viewUpdatesModal.id, updateId });
                           deleteUpdateMutation.mutate({
                             liveUpdateId: viewUpdatesModal.id,
                             updateId: updateId
@@ -753,6 +759,7 @@ const LiveUpdatesManager = () => {
                         }
                       }}
                       className="text-destructive hover:text-destructive"
+                      disabled={!u.id}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
