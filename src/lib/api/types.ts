@@ -17,19 +17,23 @@ export interface Author {
   email: string;
   bio?: string;
   avatar?: string;
+  title?: string;
+  professionalBackground?: string;
   specialization?: string[];
   expertise?: string[];
   isActive?: boolean;
   articlesCount?: number;
   articleCount?: number;
   location?: string;
+  phone?: string;
+  website?: string;
   joinDate?: string;
   profileUrl?: string;
-  socialLinks?: {
+  socialMedia?: {
     twitter?: string;
     facebook?: string;
     linkedin?: string;
-    website?: string;
+    instagram?: string;
   };
   createdAt: string;
   updatedAt: string;

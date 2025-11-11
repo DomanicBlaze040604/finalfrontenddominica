@@ -30,7 +30,7 @@ const AuthorPage = () => {
   // Fetch author's articles
   const { data: articlesData, isLoading: articlesLoading } = useQuery({
     queryKey: ['articles', 'author', id],
-    queryFn: () => articlesApi.getAll({ authorId: id, limit: 20 }),
+    queryFn: () => articlesApi.getAll({ author: id, limit: 100, status: 'published' }),
     enabled: !!id && !!authorData?.success,
   });
 
@@ -41,6 +41,8 @@ const AuthorPage = () => {
   console.log('Author ID from URL:', id);
   console.log('Author data:', author);
   console.log('Author error:', authorError);
+  console.log('Articles data:', articlesData);
+  console.log('Articles count:', articles.length);
 
   if (authorLoading) {
     return (
@@ -189,26 +191,103 @@ const AuthorPage = () => {
                     </p>
                   )}
 
-                  {/* Social Links */}
-                  {author.socialLinks && Object.entries(author.socialLinks).some(([_, url]) => url) && (
-                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                      {Object.entries(author.socialLinks).map(([platform, url]) => {
-                        if (!url) return null;
-                        return (
-                          <a
-                            key={platform}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
-                          >
-                            {getSocialIcon(platform)}
-                            {getSocialLabel(platform)}
-                          </a>
-                        );
-                      })}
+                  {/* Specialization & Expertise */}
+                  {(author.specialization?.length > 0 || author.expertise?.length > 0) && (
+                    <div className="mb-4">
+                      {author.title && (
+                        <p className="text-lg font-semibold text-primary mb-2">{author.title}</p>
+                      )}
+                      {author.specialization?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {author.specialization.map((spec: string, idx: number) => (
+                            <Badge key={idx} variant="secondary">{spec}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      {author.expertise?.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {author.expertise.map((exp: string, idx: number) => (
+                            <Badge key={idx} variant="outline">{exp}</Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {/* Professional Background */}
+                  {author.professionalBackground && (
+                    <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                      <h3 className="font-semibold mb-2">Professional Background</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">
+                        {author.professionalBackground}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Contact & Social Links */}
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    {author.phone && (
+                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm">
+                        <Mail className="h-4 w-4" />
+                        {author.phone}
+                      </div>
+                    )}
+                    {author.website && (
+                      <a
+                        href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
+                      >
+                        <Globe className="h-4 w-4" />
+                        Website
+                      </a>
+                    )}
+                    {author.socialMedia?.twitter && (
+                      <a
+                        href={author.socialMedia.twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
+                      >
+                        <Twitter className="h-4 w-4" />
+                        Twitter
+                      </a>
+                    )}
+                    {author.socialMedia?.facebook && (
+                      <a
+                        href={author.socialMedia.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        Facebook
+                      </a>
+                    )}
+                    {author.socialMedia?.linkedin && (
+                      <a
+                        href={author.socialMedia.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                        LinkedIn
+                      </a>
+                    )}
+                    {author.socialMedia?.instagram && (
+                      <a
+                        href={author.socialMedia.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm transition-colors"
+                      >
+                        <Globe className="h-4 w-4" />
+                        Instagram
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
