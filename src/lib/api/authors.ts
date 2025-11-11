@@ -31,6 +31,11 @@ export const authorsApi = {
   delete: async (id: string) => {
     return apiClient.delete(`/api/admin/authors/${id}`) as Promise<ApiResponse<void>>;
   },
+
+  // Toggle author status (admin)
+  toggleStatus: async (id: string) => {
+    return apiClient.patch(`/api/admin/authors/${id}/toggle-status`) as Promise<ApiResponse<Author>>;
+  },
 };
 
 export default authorsApi;

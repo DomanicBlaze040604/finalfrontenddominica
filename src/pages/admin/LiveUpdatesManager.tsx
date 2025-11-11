@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { PlusCircle, Play, Pause, StopCircle, Trash2, Eye, MessageSquare, X } from 'lucide-react';
@@ -20,6 +21,7 @@ const LiveUpdatesManager = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [newUpdateContent, setNewUpdateContent] = useState('');
+  const [viewUpdatesModal, setViewUpdatesModal] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -129,6 +131,22 @@ const LiveUpdatesManager = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'liveUpdates'] });
       toast({ title: 'Live update deleted' });
+    },
+  });
+
+  const deleteUpdateMutation = useMutation({
+    mutationFn: ({ liveUpdateId, updateId }: { liveUpdateId: string; updateId: string }) =>
+      liveUpdatesApi.deleteUpdate(liveUpdateId, updateId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'liveUpdates'] });
+      toast({ title: 'Update deleted successfully!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete update',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -325,27 +343,7 @@ const LiveUpdatesManager = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      // Show updates list modal
-                      const updatesHtml = update.updates?.map((u: any, i: number) => `
-                        <div class="border-b pb-3 mb-3">
-                          <div class="text-sm text-gray-500">${new Date(u.timestamp).toLocaleString()}</div>
-                          <div class="mt-1">${u.content}</div>
-                        </div>
-                      `).join('') || 'No updates yet';
-                      
-                      const modal = document.createElement('div');
-                      modal.innerHTML = `
-                        <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">
-                          <div style="background:white;padding:24px;border-radius:8px;max-width:600px;max-height:80vh;overflow-y:auto">
-                            <h3 style="font-size:18px;font-weight:bold;margin-bottom:16px">${update.title} - Updates</h3>
-                            ${updatesHtml}
-                            <button onclick="this.closest('div[style*=fixed]').parentElement.remove()" style="margin-top:16px;padding:8px 16px;background:#000;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button>
-                          </div>
-                        </div>
-                      `;
-                      document.body.appendChild(modal);
-                    }}
+                    onClick={() => setViewUpdatesModal(update)}
                     title="View all updates"
                   >
                     <Eye className="h-4 w-4" />
@@ -708,6 +706,73 @@ const LiveUpdatesManager = () => {
           </div>
         )}
       </div>
+
+      {/* View Updates Dialog */}
+      <Dialog open={!!viewUpdatesModal} onOpenChange={() => setViewUpdatesModal(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{viewUpdatesModal?.title} - All Updates</DialogTitle>
+            <DialogDescription>
+              View and manage all updates for this live news story
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {viewUpdatesModal?.updates && viewUpdatesModal.updates.length > 0 ? (
+              viewUpdatesModal.updates.map((u: any, index: number) => (
+                <div key={index} className="border rounded-lg p-4 relative">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {new Date(u.timestamp).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone: 'America/Dominica'
+                        })}
+                        {u.author && ` • ${u.author.name}`}
+                      </div>
+                      <div 
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: u.content }}
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (confirm('Delete this update?')) {
+                          // The update ID is the timestamp
+                          const updateId = new Date(u.timestamp).getTime().toString();
+                          deleteUpdateMutation.mutate({
+                            liveUpdateId: viewUpdatesModal.id,
+                            updateId: updateId
+                          });
+                        }
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No updates yet
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setViewUpdatesModal(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

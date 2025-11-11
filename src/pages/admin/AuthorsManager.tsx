@@ -36,7 +36,10 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Search
+  Search,
+  Upload,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
 
 interface AuthorFormData {
@@ -65,6 +68,8 @@ const AuthorsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAuthor, setEditingAuthor] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [formData, setFormData] = useState<AuthorFormData>({
     name: '',
     email: '',
@@ -159,6 +164,38 @@ const AuthorsManager = () => {
     },
   });
 
+  // Toggle status mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: (id: string) => authorsApi.toggleStatus(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['authors'] });
+      toast({
+        title: 'Success',
+        description: 'Author status updated',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        setFormData({ ...formData, avatar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleOpenDialog = (author?: any) => {
     if (author) {
       setEditingAuthor(author);
@@ -203,12 +240,16 @@ const AuthorsManager = () => {
         },
       });
     }
+    setAvatarFile(null);
+    setAvatarPreview('');
     setIsDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingAuthor(null);
+    setAvatarFile(null);
+    setAvatarPreview('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -385,6 +426,18 @@ const AuthorsManager = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => toggleStatusMutation.mutate(author.id)}
+                          title={author.isActive ? 'Deactivate' : 'Activate'}
+                        >
+                          {author.isActive ? (
+                            <ToggleRight className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <ToggleLeft className="h-4 w-4 text-gray-400" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleOpenDialog(author)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -536,14 +589,42 @@ const AuthorsManager = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                type="url"
-                placeholder="https://"
-                value={formData.avatar}
-                onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-              />
+              <Label htmlFor="avatar">Avatar Image</Label>
+              <div className="flex items-center gap-4">
+                {(avatarPreview || formData.avatar) && (
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={avatarPreview || formData.avatar} alt="Preview" />
+                    <AvatarFallback>Preview</AvatarFallback>
+                  </Avatar>
+                )}
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      id="avatar-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('avatar-file')?.click()}
+                      className="flex-1"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Image
+                    </Button>
+                  </div>
+                  <Input
+                    id="avatar"
+                    type="url"
+                    placeholder="Or paste image URL"
+                    value={formData.avatar}
+                    onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Social Media */}

@@ -47,13 +47,21 @@ const ArticleCard = ({
             {excerpt}
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            <Link 
-              to={`/author/${authorId || '#'}`} 
-              className="font-medium truncate hover:text-primary transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {author}
-            </Link>
+            {authorId ? (
+              <Link 
+                to={`/author/${authorId}`} 
+                className="font-medium truncate hover:text-primary transition-colors hover:underline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/author/${authorId}`;
+                }}
+              >
+                {author}
+              </Link>
+            ) : (
+              <span className="font-medium truncate">{author}</span>
+            )}
             <span className="flex-shrink-0">•</span>
             <time dateTime={date} className="truncate">{date}</time>
           </div>

@@ -3,6 +3,10 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapImage from '@tiptap/extension-image';
 import TiptapLink from '@tiptap/extension-link';
 import CharacterCount from '@tiptap/extension-character-count';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import { EmbedNode } from './EmbedExtension';
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
@@ -32,7 +36,10 @@ import {
   Heading3,
   Code,
   Type,
-  Video
+  Video,
+  Table as TableIcon,
+  Plus,
+  Minus
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -70,6 +77,23 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-primary underline',
+        },
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'border-collapse table-auto w-full my-4',
+        },
+      }),
+      TableRow,
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 px-4 py-2 bg-gray-100 font-bold',
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 px-4 py-2',
         },
       }),
       CharacterCount,
@@ -382,6 +406,69 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
 
           <Separator orientation="vertical" className="h-6 mx-1" />
 
+          {/* Table */}
+          <ToolbarButton
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            title="Insert Table"
+          >
+            <TableIcon className="h-4 w-4" />
+          </ToolbarButton>
+          
+          {editor.isActive('table') && (
+            <>
+              <ToolbarButton
+                onClick={() => editor.chain().focus().addColumnBefore().run()}
+                title="Add Column Before"
+              >
+                <Plus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+                title="Add Column After"
+              >
+                <Plus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().deleteColumn().run()}
+                title="Delete Column"
+              >
+                <Minus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().addRowBefore().run()}
+                title="Add Row Before"
+              >
+                <Plus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+                title="Add Row After"
+              >
+                <Plus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().deleteRow().run()}
+                title="Delete Row"
+              >
+                <Minus className="h-3 w-3" />
+              </ToolbarButton>
+              
+              <ToolbarButton
+                onClick={() => editor.chain().focus().deleteTable().run()}
+                title="Delete Table"
+              >
+                <span className="text-xs font-bold">✕</span>
+              </ToolbarButton>
+            </>
+          )}
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
           {/* Undo/Redo */}
           <ToolbarButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -689,6 +776,57 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Table Styles */}
+      <style>{`
+        .ProseMirror table {
+          border-collapse: collapse;
+          table-layout: fixed;
+          width: 100%;
+          margin: 1rem 0;
+          overflow: hidden;
+        }
+
+        .ProseMirror td,
+        .ProseMirror th {
+          min-width: 1em;
+          border: 1px solid #ddd;
+          padding: 8px 12px;
+          vertical-align: top;
+          box-sizing: border-box;
+          position: relative;
+        }
+
+        .ProseMirror th {
+          font-weight: bold;
+          text-align: left;
+          background-color: #f3f4f6;
+        }
+
+        .ProseMirror .selectedCell:after {
+          z-index: 2;
+          position: absolute;
+          content: "";
+          left: 0; right: 0; top: 0; bottom: 0;
+          background: rgba(200, 200, 255, 0.4);
+          pointer-events: none;
+        }
+
+        .ProseMirror .column-resize-handle {
+          position: absolute;
+          right: -2px;
+          top: 0;
+          bottom: -2px;
+          width: 4px;
+          background-color: #adf;
+          pointer-events: none;
+        }
+
+        .ProseMirror.resize-cursor {
+          cursor: ew-resize;
+          cursor: col-resize;
+        }
+      `}</style>
     </div>
   );
 };
