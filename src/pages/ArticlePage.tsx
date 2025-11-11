@@ -113,7 +113,12 @@ const ArticlePageContent = () => {
 
           {/* Meta */}
           <div className="flex flex-wrap items-center gap-3 text-muted-foreground mb-6 pb-6 border-b border-border">
-            <span className="font-medium">{article.author.name}</span>
+            <Link 
+              to={`/author/${article.author.id || article.author._id}`}
+              className="font-medium hover:text-primary transition-colors"
+            >
+              {article.author.name}
+            </Link>
             <span>•</span>
             <time dateTime={publishedDate.toISOString()}>
               {publishedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Dominica' })} | {publishedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Dominica' })} AST
@@ -220,9 +225,14 @@ const ArticlePageContent = () => {
           )}
 
           {/* Author Info */}
-          <div className="mt-8 p-6 bg-muted/50 rounded-lg">
+          <div className="mt-8 p-6 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors" onClick={() => window.location.href = `/author/${article.author.id || article.author._id}`}>
             <h3 className="font-display font-bold text-lg mb-2">About the Author</h3>
-            <p className="font-medium mb-1">{article.author.name}</p>
+            <Link 
+              to={`/author/${article.author.id || article.author._id}`}
+              className="font-medium mb-1 hover:text-primary transition-colors block"
+            >
+              {article.author.name}
+            </Link>
             {article.author.bio && (
               <p className="text-sm text-muted-foreground">{article.author.bio}</p>
             )}

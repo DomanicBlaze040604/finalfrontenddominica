@@ -589,12 +589,33 @@ const LiveUpdatesManager = () => {
                 <p className="text-sm text-muted-foreground">{selectedUpdate.title}</p>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label>Author for this update</Label>
+                  <Select 
+                    value={formData.authorId} 
+                    onValueChange={(value) => setFormData({ ...formData, authorId: value })}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select author for this update" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {authors.map((author: any) => (
+                        <SelectItem key={author.id} value={author.id}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Choose who is posting this update
+                  </p>
+                </div>
+                
                 <Textarea
                   placeholder="What's happening now?"
                   value={newUpdateContent}
                   onChange={(e) => setNewUpdateContent(e.target.value)}
                   rows={4}
-                  autoFocus
                 />
                 <div className="flex gap-2">
                   <Button

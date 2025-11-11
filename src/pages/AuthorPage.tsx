@@ -15,21 +15,32 @@ const AuthorPage = () => {
   const { id } = useParams();
 
   // Fetch author details
-  const { data: authorData, isLoading: authorLoading } = useQuery({
+  const { data: authorData, isLoading: authorLoading, error: authorError } = useQuery({
     queryKey: ['author', id],
-    queryFn: () => authorsApi.getById(id!),
+    queryFn: async () => {
+      console.log('Fetching author with ID:', id);
+      const result = await authorsApi.getById(id!);
+      console.log('Author API result:', result);
+      return result;
+    },
     enabled: !!id,
+    retry: 1,
   });
 
   // Fetch author's articles
   const { data: articlesData, isLoading: articlesLoading } = useQuery({
     queryKey: ['articles', 'author', id],
     queryFn: () => articlesApi.getAll({ authorId: id, limit: 20 }),
-    enabled: !!id,
+    enabled: !!id && !!authorData?.success,
   });
 
   const author = authorData?.success ? authorData.data : null;
   const articles = articlesData?.success ? articlesData.data : [];
+  
+  // Debug logging
+  console.log('Author ID from URL:', id);
+  console.log('Author data:', author);
+  console.log('Author error:', authorError);
 
   if (authorLoading) {
     return (
@@ -47,22 +58,39 @@ const AuthorPage = () => {
     );
   }
 
-  if (!author) {
+  if (!authorLoading && !author) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <SafeComponent componentName="Header">
           <Header />
         </SafeComponent>
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
+          <div className="text-center max-w-md mx-auto p-6">
             <h1 className="text-2xl font-bold mb-2">Author Not Found</h1>
-            <p className="text-muted-foreground mb-4">The author you're looking for doesn't exist.</p>
-            <Link to="/">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
+            <p className="text-muted-foreground mb-4">
+              The author you're looking for doesn't exist or the ID is invalid.
+            </p>
+            <div className="text-sm text-muted-foreground mb-4 p-4 bg-muted rounded">
+              <p className="font-mono">Author ID: {id}</p>
+              {authorError && (
+                <p className="mt-2 text-red-600">
+                  Error: {(authorError as any)?.message || 'Failed to load author'}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2 justify-center">
+              <Link to="/">
+                <Button>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+              <Link to="/admin/authors">
+                <Button variant="outline">
+                  View All Authors
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
