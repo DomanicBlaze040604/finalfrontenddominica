@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TiptapImage from '@tiptap/extension-image';
 import TiptapLink from '@tiptap/extension-link';
+import TiptapUnderline from '@tiptap/extension-underline';
 import CharacterCount from '@tiptap/extension-character-count';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
@@ -68,6 +69,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
   const editor = useEditor({
     extensions: [
       StarterKit,
+      TiptapUnderline,
       TiptapImage.configure({
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto my-4',
@@ -193,21 +195,35 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
         } catch (error) {
           console.warn('⚠️ oEmbed fetch failed, using fallback:', error);
           
-          // Fallback to manual embed generation
+          // Fallback to manual embed generation with iframe support
           switch (embedType) {
             case 'twitter':
             case 'x':
-              embedHtml = `<blockquote class="twitter-tweet" data-dnt="true" data-theme="light"><p lang="en" dir="ltr"><a href="${embedUrl}">View this post on Twitter</a></p></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`;
+              // Use iframe for Twitter/X
+              const tweetId = embedUrl.match(/status\/(\d+)/)?.[1];
+              if (tweetId) {
+                embedHtml = `<iframe border="0" frameborder="0" height="500" width="550" src="https://twitframe.com/show?url=${encodeURIComponent(embedUrl)}" style="max-width: 100%; margin: 20px auto; display: block;"></iframe>`;
+              } else {
+                embedHtml = `<blockquote class="twitter-tweet" data-dnt="true" data-theme="light"><p lang="en" dir="ltr"><a href="${embedUrl}">View this post on Twitter</a></p></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`;
+              }
               break;
             case 'instagram':
-              embedHtml = `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${embedUrl}" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px auto; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:16px;"><a href="${embedUrl}" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">View this post on Instagram</a></div></blockquote><script async src="//www.instagram.com/embed.js"></script>`;
+              // Use iframe for Instagram
+              const igPostId = embedUrl.match(/\/p\/([^\/]+)/)?.[1] || embedUrl.match(/\/reel\/([^\/]+)/)?.[1];
+              if (igPostId) {
+                embedHtml = `<iframe src="https://www.instagram.com/p/${igPostId}/embed/" width="540" height="700" frameborder="0" scrolling="no" allowtransparency="true" style="max-width: 100%; margin: 20px auto; display: block; border: 1px solid #dbdbdb; border-radius: 3px;"></iframe>`;
+              } else {
+                embedHtml = `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${embedUrl}" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px auto; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:16px;"><a href="${embedUrl}" style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank">View this post on Instagram</a></div></blockquote><script async src="//www.instagram.com/embed.js"></script>`;
+              }
               break;
             case 'youtube':
               const youtubeId = embedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
               embedHtml = `<div class="video-responsive" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/${youtubeId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
               break;
             case 'facebook':
-              embedHtml = `<div class="fb-post" data-href="${embedUrl}" data-width="500" data-show-text="true"><blockquote cite="${embedUrl}" class="fb-xfbml-parse-ignore"><a href="${embedUrl}">View post on Facebook</a></blockquote></div><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0"></script>`;
+              // Use iframe for Facebook
+              const fbUrl = encodeURIComponent(embedUrl);
+              embedHtml = `<iframe src="https://www.facebook.com/plugins/post.php?href=${fbUrl}&width=500&show_text=true" width="500" height="600" style="border:none;overflow:hidden;max-width:100%;margin:20px auto;display:block;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
               break;
             case 'tiktok':
               embedHtml = `<blockquote class="tiktok-embed" cite="${embedUrl}" data-video-id="${embedUrl.split('/').pop()}"><a href="${embedUrl}">View TikTok</a></blockquote><script async src="https://www.tiktok.com/embed.js"></script>`;
@@ -280,6 +296,14 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
             title="Italic"
           >
             <Italic className="h-4 w-4" />
+          </ToolbarButton>
+          
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            isActive={editor.isActive('underline')}
+            title="Underline"
+          >
+            <Underline className="h-4 w-4" />
           </ToolbarButton>
           
           <ToolbarButton
