@@ -16,6 +16,21 @@ export const authorsApi = {
   getArticles: async (id: string, params?: { limit?: number; page?: number }) => {
     return apiClient.get(`/api/authors/${id}/articles`, { params });
   },
+
+  // Create author (admin)
+  create: async (data: Partial<Author>) => {
+    return apiClient.post('/api/admin/authors', data) as Promise<ApiResponse<Author>>;
+  },
+
+  // Update author (admin)
+  update: async (id: string, data: Partial<Author>) => {
+    return apiClient.put(`/api/admin/authors/${id}`, data) as Promise<ApiResponse<Author>>;
+  },
+
+  // Delete author (admin)
+  delete: async (id: string) => {
+    return apiClient.delete(`/api/admin/authors/${id}`) as Promise<ApiResponse<void>>;
+  },
 };
 
 export default authorsApi;

@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, ExternalLink, AlertCircle } from 'lucide-react';
 import type { Embed } from '@/lib/api/types';
 
 interface UniversalEmbedProps {
@@ -6,186 +8,220 @@ interface UniversalEmbedProps {
 }
 
 export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Aggressive embed loading with multiple retries
   useEffect(() => {
-    // Load Instagram embed script
-    if (embed.type === 'instagram' && !embed.embedCode) {
-      const loadInstagram = () => {
-        if (window.instgrm) {
-          setTimeout(() => {
-            window.instgrm.Embeds.process();
-          }, 100);
-        } else {
-          const script = document.createElement('script');
-          script.src = '//www.instagram.com/embed.js';
-          script.async = true;
-          script.onload = () => {
-            setTimeout(() => {
-              if (window.instgrm) {
-                window.instgrm.Embeds.process();
-              }
-            }, 100);
-          };
-          document.body.appendChild(script);
-        }
-      };
-      loadInstagram();
-      
-      // Retry after a delay
-      const timer = setTimeout(loadInstagram, 1000);
-      return () => clearTimeout(timer);
-    }
+    if (!embed.url && !embed.embedCode) return;
 
-    // Load Twitter widget script for blockquote embeds
-    if ((embed.type === 'twitter' || embed.type === 'x') && !embed.embedCode) {
-      const loadTwitter = () => {
-        if (window.twttr?.widgets) {
-          setTimeout(() => {
-            window.twttr.widgets.load();
-          }, 100);
-        } else {
-          // Check if script already exists
-          const existingScript = document.querySelector('script[src*="platform.twitter.com/widgets.js"]');
-          if (!existingScript) {
-            const script = document.createElement('script');
-            script.src = 'https://platform.twitter.com/widgets.js';
-            script.async = true;
-            script.charset = 'utf-8';
-            script.onload = () => {
-              setTimeout(() => {
-                if (window.twttr?.widgets) {
-                  window.twttr.widgets.load();
-                }
-              }, 100);
-            };
-            document.body.appendChild(script);
-          }
+    const loadEmbed = () => {
+      try {
+        switch (embed.type.toLowerCase()) {
+          case 'instagram':
+            loadInstagram();
+            break;
+          case 'twitter':
+          case 'x':
+            loadTwitter();
+            break;
+          case 'facebook':
+            loadFacebook();
+            break;
+          case 'tiktok':
+            loadTikTok();
+            break;
+          default:
+            setIsLoading(false);
         }
-      };
-      loadTwitter();
-      
-      // Retry after delays to ensure rendering
-      const timer1 = setTimeout(loadTwitter, 500);
-      const timer2 = setTimeout(loadTwitter, 1500);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
-    }
-
-    // Load Facebook SDK
-    if (embed.type === 'facebook' && !embed.embedCode) {
-      const loadFacebook = () => {
-        if (window.FB) {
-          setTimeout(() => {
-            window.FB.XFBML.parse();
-          }, 100);
-        } else {
-          // Load Facebook SDK
-          const fbRoot = document.getElementById('fb-root');
-          if (!fbRoot) {
-            const div = document.createElement('div');
-            div.id = 'fb-root';
-            document.body.appendChild(div);
-          }
-          
-          const script = document.createElement('script');
-          script.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0';
-          script.async = true;
-          script.defer = true;
-          script.crossOrigin = 'anonymous';
-          script.onload = () => {
-            setTimeout(() => {
-              if (window.FB) {
-                window.FB.XFBML.parse();
-              }
-            }, 100);
-          };
-          document.body.appendChild(script);
-        }
-      };
-      loadFacebook();
-      
-      // Retry after a delay
-      const timer = setTimeout(loadFacebook, 1000);
-      return () => clearTimeout(timer);
-    }
-
-    // Load TikTok embed script
-    if (embed.type === 'tiktok' && !embed.embedCode) {
-      if (!window.TikTokEmbed) {
-        const script = document.createElement('script');
-        script.src = 'https://www.tiktok.com/embed.js';
-        script.async = true;
-        document.body.appendChild(script);
+      } catch (error) {
+        console.error('Embed loading error:', error);
+        setHasError(true);
+        setIsLoading(false);
       }
-    }
-  }, [embed.type, embed.embedCode, embed.url]);
+    };
 
-  // If custom embed code is provided, use it
+    // Initial load
+    loadEmbed();
+
+    // Aggressive retry strategy - try multiple times
+    const retryTimers = [
+      setTimeout(loadEmbed, 500),
+      setTimeout(loadEmbed, 1000),
+      setTimeout(loadEmbed, 2000),
+      setTimeout(loadEmbed, 3000),
+      setTimeout(loadEmbed, 5000),
+    ];
+
+    // Mark as loaded after 6 seconds
+    const loadingTimer = setTimeout(() => setIsLoading(false), 6000);
+
+    return () => {
+      retryTimers.forEach(timer => clearTimeout(timer));
+      clearTimeout(loadingTimer);
+    };
+  }, [embed.type, embed.url, embed.embedCode, retryCount]);
+
+  const loadInstagram = () => {
+    if (!(window as any).instgrm) {
+      const script = document.createElement('script');
+      script.src = 'https://www.instagram.com/embed.js';
+      script.async = true;
+      script.onload = () => {
+        setTimeout(() => {
+          if ((window as any).instgrm?.Embeds) {
+            (window as any).instgrm.Embeds.process();
+            setIsLoading(false);
+          }
+        }, 100);
+      };
+      script.onerror = () => setHasError(true);
+      document.body.appendChild(script);
+    } else {
+      setTimeout(() => {
+        if ((window as any).instgrm?.Embeds) {
+          (window as any).instgrm.Embeds.process();
+          setIsLoading(false);
+        }
+      }, 100);
+    }
+  };
+
+  const loadTwitter = () => {
+    if (!(window as any).twttr) {
+      const script = document.createElement('script');
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.async = true;
+      script.charset = 'utf-8';
+      script.onload = () => {
+        setTimeout(() => {
+          if ((window as any).twttr?.widgets) {
+            (window as any).twttr.widgets.load(containerRef.current);
+            setIsLoading(false);
+          }
+        }, 100);
+      };
+      script.onerror = () => setHasError(true);
+      document.body.appendChild(script);
+    } else {
+      setTimeout(() => {
+        if ((window as any).twttr?.widgets) {
+          (window as any).twttr.widgets.load(containerRef.current);
+          setIsLoading(false);
+        }
+      }, 100);
+    }
+  };
+
+  const loadFacebook = () => {
+    // Create fb-root if it doesn't exist
+    if (!document.getElementById('fb-root')) {
+      const fbRoot = document.createElement('div');
+      fbRoot.id = 'fb-root';
+      document.body.insertBefore(fbRoot, document.body.firstChild);
+    }
+
+    if (!(window as any).FB) {
+      const script = document.createElement('script');
+      script.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0';
+      script.async = true;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
+      script.onload = () => {
+        setTimeout(() => {
+          if ((window as any).FB?.XFBML) {
+            (window as any).FB.XFBML.parse(containerRef.current);
+            setIsLoading(false);
+          }
+        }, 100);
+      };
+      script.onerror = () => setHasError(true);
+      document.body.appendChild(script);
+    } else {
+      setTimeout(() => {
+        if ((window as any).FB?.XFBML) {
+          (window as any).FB.XFBML.parse(containerRef.current);
+          setIsLoading(false);
+        }
+      }, 100);
+    }
+  };
+
+  const loadTikTok = () => {
+    if (!(window as any).TikTokEmbed) {
+      const script = document.createElement('script');
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      script.onload = () => setIsLoading(false);
+      script.onerror = () => setHasError(true);
+      document.body.appendChild(script);
+    } else {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setHasError(false);
+    setRetryCount(prev => prev + 1);
+  };
+
+  // If custom embed code is provided, use it directly
   if (embed.embedCode) {
-    // Check if it's Twitter embed code
-    const isTwitterEmbed = embed.embedCode.includes('twitter-tweet') || embed.embedCode.includes('platform.twitter.com/widgets.js');
-    
-    useEffect(() => {
-      if (isTwitterEmbed) {
-        // Load Twitter widget for custom embed code
-        const loadTwitterWidget = () => {
-          if (window.twttr?.widgets) {
-            window.twttr.widgets.load();
-          } else {
-            const existingScript = document.querySelector('script[src*="platform.twitter.com/widgets.js"]');
-            if (!existingScript) {
-              const script = document.createElement('script');
-              script.src = 'https://platform.twitter.com/widgets.js';
-              script.async = true;
-              script.charset = 'utf-8';
-              document.body.appendChild(script);
-            }
-          }
-        };
-        
-        // Load immediately and retry
-        loadTwitterWidget();
-        const timer1 = setTimeout(loadTwitterWidget, 500);
-        const timer2 = setTimeout(loadTwitterWidget, 1500);
-        const timer3 = setTimeout(loadTwitterWidget, 3000);
-        
-        return () => {
-          clearTimeout(timer1);
-          clearTimeout(timer2);
-          clearTimeout(timer3);
-        };
-      }
-    }, [isTwitterEmbed, embed.embedCode]);
-    
     return (
-      <div className="embed-container my-6">
-        <div 
-          className="embed-content"
-          dangerouslySetInnerHTML={{ __html: embed.embedCode }}
-          style={{
-            width: embed.width || '100%',
-            height: embed.height || 'auto',
-          }}
-        />
-        {embed.caption && (
-          <p className="text-sm text-muted-foreground text-center mt-2 italic">
-            {embed.caption}
-          </p>
-        )}
+      <div ref={containerRef} className="embed-container my-8">
+        <div className="max-w-3xl mx-auto">
+          {isLoading && (
+            <div className="flex items-center justify-center p-8 bg-muted rounded-lg animate-pulse">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-sm text-muted-foreground">Loading embed...</p>
+              </div>
+            </div>
+          )}
+          <div 
+            className="embed-content"
+            dangerouslySetInnerHTML={{ __html: embed.embedCode }}
+            style={{
+              width: embed.width || '100%',
+              minHeight: isLoading ? '400px' : 'auto',
+            }}
+          />
+          {embed.caption && (
+            <p className="text-sm text-muted-foreground text-center mt-3 italic">
+              {embed.caption}
+            </p>
+          )}
+          {hasError && (
+            <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2 text-destructive mb-2">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">Embed failed to load</span>
+              </div>
+              <Button onClick={handleRetry} size="sm" variant="outline" className="gap-2">
+                <RefreshCw className="h-3 w-3" />
+                Retry
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   // Handle specific embed types by URL
   const renderEmbed = () => {
+    const url = embed.url || '';
+
     switch (embed.type.toLowerCase()) {
-      case 'instagram':
+      case 'instagram': {
         return (
           <blockquote
             className="instagram-media"
             data-instgrm-captioned
-            data-instgrm-permalink={embed.url}
+            data-instgrm-permalink={url}
             data-instgrm-version="14"
             style={{ 
               background: '#FFF',
@@ -196,32 +232,36 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
               maxWidth: '540px',
               minWidth: '326px',
               padding: '0',
-              width: 'calc(100% - 2px)'
+              width: 'calc(100% - 2px)',
+              minHeight: isLoading ? '400px' : 'auto',
             }}
           >
-            <a href={embed.url} target="_blank" rel="noopener noreferrer">
+            <a href={url} target="_blank" rel="noopener noreferrer">
               View this post on Instagram
             </a>
           </blockquote>
         );
+      }
 
       case 'twitter':
-      case 'x':
-        // Use blockquote method with Twitter widget script
-        const tweetUrl = embed.url || '';
-        const tweetId = tweetUrl.split('/status/')[1]?.split('?')[0];
+      case 'x': {
+        const tweetId = url.split('/status/')[1]?.split('?')[0];
         
         if (!tweetId) {
           return (
-            <div className="p-4 border rounded-lg bg-muted">
-              <p className="text-sm text-muted-foreground">
-                Invalid Twitter URL. Please use format: https://twitter.com/username/status/123456789
+            <div className="p-6 border-2 border-dashed rounded-lg bg-muted text-center">
+              <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground mb-2">Invalid Twitter URL</p>
+              <p className="text-xs text-muted-foreground">
+                Format: https://twitter.com/username/status/123456789
               </p>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-2 inline-flex items-center gap-1">
+                Open link <ExternalLink className="h-3 w-3" />
+              </a>
             </div>
           );
         }
 
-        // Use blockquote method (same as Twitter's official embed code)
         return (
           <div className="twitter-embed-wrapper" style={{ maxWidth: '550px', margin: '0 auto' }}>
             <blockquote 
@@ -229,99 +269,141 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
               data-theme="light"
               data-dnt="true"
               data-lang="en"
+              style={{ minHeight: isLoading ? '400px' : 'auto' }}
             >
-              <a href={embed.url} target="_blank" rel="noopener noreferrer">
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 View this post on Twitter
               </a>
             </blockquote>
           </div>
         );
+      }
 
-      case 'youtube':
-        const youtubeId = embed.url?.includes('watch?v=')
-          ? embed.url.split('watch?v=')[1]?.split('&')[0]
-          : embed.url?.split('/').pop();
+      case 'youtube': {
+        const youtubeId = url.includes('watch?v=')
+          ? url.split('watch?v=')[1]?.split('&')[0]
+          : url.split('/').pop()?.split('?')[0];
+        
+        if (!youtubeId) {
+          return (
+            <div className="p-6 border-2 border-dashed rounded-lg bg-muted text-center">
+              <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">Invalid YouTube URL</p>
+            </div>
+          );
+        }
+
         return (
-          <iframe
-            width={embed.width || '100%'}
-            height={embed.height || '400'}
-            src={`https://www.youtube.com/embed/${youtubeId}`}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="rounded-lg"
-          />
+          <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}`}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+              }}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="rounded-lg"
+            />
+          </div>
         );
+      }
 
-      case 'vimeo':
-        const vimeoId = embed.url?.split('/').pop();
+      case 'vimeo': {
+        const vimeoId = url.split('/').pop()?.split('?')[0];
         return (
-          <iframe
-            src={`https://player.vimeo.com/video/${vimeoId}`}
-            width={embed.width || '100%'}
-            height={embed.height || '400'}
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            className="rounded-lg"
-          />
+          <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+            <iframe
+              src={`https://player.vimeo.com/video/${vimeoId}`}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+              }}
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              className="rounded-lg"
+            />
+          </div>
         );
+      }
 
-      case 'tiktok':
+      case 'tiktok': {
+        const videoId = url.split('/video/')[1]?.split('?')[0];
         return (
           <blockquote
             className="tiktok-embed"
-            cite={embed.url}
-            data-video-id={embed.url?.split('/').pop()}
-            style={{ maxWidth: '605px', minWidth: '325px', margin: '0 auto' }}
+            cite={url}
+            data-video-id={videoId}
+            style={{ 
+              maxWidth: '605px', 
+              minWidth: '325px', 
+              margin: '0 auto',
+              minHeight: isLoading ? '600px' : 'auto',
+            }}
           >
-            <a href={embed.url}>Loading TikTok...</a>
+            <section>
+              <a href={url} target="_blank" rel="noopener noreferrer">
+                View on TikTok
+              </a>
+            </section>
           </blockquote>
         );
+      }
 
-      case 'spotify':
-        const spotifyId = embed.url?.split('/').pop()?.split('?')[0];
-        const spotifyType = embed.url?.includes('/track/') ? 'track' : 'playlist';
+      case 'spotify': {
+        const spotifyId = url.split('/').pop()?.split('?')[0];
+        const spotifyType = url.includes('/track/') ? 'track' : 
+                           url.includes('/playlist/') ? 'playlist' : 
+                           url.includes('/album/') ? 'album' : 'track';
         return (
           <iframe
             src={`https://open.spotify.com/embed/${spotifyType}/${spotifyId}`}
-            width={embed.width || '100%'}
-            height={embed.height || '380'}
+            width="100%"
+            height="380"
             frameBorder="0"
             allow="encrypted-media"
             className="rounded-lg"
           />
         );
+      }
 
-      case 'soundcloud':
+      case 'soundcloud': {
         return (
           <iframe
-            width={embed.width || '100%'}
-            height={embed.height || '166'}
+            width="100%"
+            height="166"
             scrolling="no"
             frameBorder="no"
             allow="autoplay"
-            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(embed.url || '')}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
+            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`}
             className="rounded-lg"
           />
         );
+      }
 
-      case 'facebook':
-        // Facebook embed using oEmbed API
-        const fbUrl = encodeURIComponent(embed.url || '');
+      case 'facebook': {
         return (
-          <div className="fb-post" data-href={embed.url} data-width="500" data-show-text="true">
-            <blockquote cite={embed.url} className="fb-xfbml-parse-ignore">
-              <a href={embed.url} target="_blank" rel="noopener noreferrer">
+          <div className="fb-post" data-href={url} data-width="500" data-show-text="true">
+            <blockquote cite={url} className="fb-xfbml-parse-ignore">
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 View this post on Facebook
               </a>
             </blockquote>
           </div>
         );
+      }
 
-      case 'codepen':
-        const codepenUser = embed.url?.split('/pen/')[0]?.split('/').pop();
-        const codepenId = embed.url?.split('/pen/')[1]?.split('/')[0];
+      case 'codepen': {
+        const codepenUser = url.split('/pen/')[0]?.split('/').pop();
+        const codepenId = url.split('/pen/')[1]?.split('/')[0];
         return (
           <iframe
             height={embed.height || '400'}
@@ -335,13 +417,14 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
             className="rounded-lg"
           />
         );
+      }
 
       case 'google-maps':
-      case 'maps':
+      case 'maps': {
         return (
           <iframe
-            src={embed.url}
-            width={embed.width || '100%'}
+            src={url}
+            width="100%"
             height={embed.height || '450'}
             style={{ border: 0 }}
             allowFullScreen
@@ -350,32 +433,64 @@ export const UniversalEmbed = ({ embed }: UniversalEmbedProps) => {
             className="rounded-lg"
           />
         );
+      }
 
-      default:
+      default: {
         // Generic iframe for any other URL
         return (
           <iframe
-            src={embed.url}
-            width={embed.width || '100%'}
+            src={url}
+            width="100%"
             height={embed.height || '400'}
             frameBorder="0"
             allowFullScreen
             className="rounded-lg"
           />
         );
+      }
     }
   };
 
   return (
-    <div className="embed-container my-6 flex flex-col items-center">
-      <div className="w-full max-w-3xl">
-        {renderEmbed()}
+    <div ref={containerRef} className="embed-container my-8">
+      <div className="max-w-3xl mx-auto">
+        {isLoading && (
+          <div className="flex items-center justify-center p-8 bg-muted rounded-lg animate-pulse mb-4">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Loading {embed.type} embed...</p>
+            </div>
+          </div>
+        )}
+        <div className={isLoading ? 'opacity-50' : ''}>
+          {renderEmbed()}
+        </div>
+        {embed.caption && (
+          <p className="text-sm text-muted-foreground text-center mt-3 italic">
+            {embed.caption}
+          </p>
+        )}
+        {hasError && (
+          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-center gap-2 text-destructive mb-2">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Embed failed to load</span>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleRetry} size="sm" variant="outline" className="gap-2">
+                <RefreshCw className="h-3 w-3" />
+                Retry
+              </Button>
+              <a href={embed.url} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="outline" className="gap-2">
+                  <ExternalLink className="h-3 w-3" />
+                  Open Original
+                </Button>
+              </a>
+            </div>
+          </div>
+        )}
       </div>
-      {embed.caption && (
-        <p className="text-sm text-muted-foreground text-center mt-2 italic max-w-3xl">
-          {embed.caption}
-        </p>
-      )}
     </div>
   );
 };

@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { GoogleIntegration } from "./components/GoogleIntegration";
 import Index from "./pages/Index";
 import SafeIndex from "./pages/SafeIndex";
 import ArticlePage from "./pages/ArticlePage";
@@ -29,6 +31,7 @@ import RecycleBin from "./pages/admin/RecycleBin";
 import CategoryArticles from "./pages/admin/CategoryArticles";
 import LiveUpdatesManager from "./pages/admin/LiveUpdatesManager";
 import LiveUpdatePage from "./pages/LiveUpdatePage";
+import AuthorPage from "./pages/AuthorPage";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
@@ -46,14 +49,23 @@ const queryClient = new QueryClient({
   },
 });
 
+// Google Analytics and Search Console IDs (these should come from settings API)
+const GOOGLE_ANALYTICS_ID = import.meta.env.VITE_GOOGLE_ANALYTICS_ID || '';
+const GOOGLE_SEARCH_CONSOLE_ID = import.meta.env.VITE_GOOGLE_SEARCH_CONSOLE_ID || '';
+
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <ApiStatusChecker>
-          <BrowserRouter>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <GoogleIntegration 
+            googleAnalyticsId={GOOGLE_ANALYTICS_ID}
+            googleSearchConsoleId={GOOGLE_SEARCH_CONSOLE_ID}
+          />
+          <ApiStatusChecker>
+            <BrowserRouter>
           <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/safe" element={<SafeIndex />} />
@@ -62,6 +74,7 @@ const App = () => (
           <Route path="/search" element={<SearchResults />} />
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/author/:id" element={<AuthorPage />} />
           <Route path="/live/:id" element={<LiveUpdatePage />} />
           
           {/* Auth Routes - MUST BE BEFORE CATCH-ALL */}
@@ -163,10 +176,11 @@ const App = () => (
           <Route path="/:slug" element={<StaticPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </BrowserRouter>
-        </ApiStatusChecker>
-    </TooltipProvider>
-  </QueryClientProvider>
+            </BrowserRouter>
+          </ApiStatusChecker>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   </ErrorBoundary>
 );
 

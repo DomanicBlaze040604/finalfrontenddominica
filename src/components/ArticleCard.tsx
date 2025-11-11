@@ -9,6 +9,7 @@ interface ArticleCardProps {
   category: string;
   date: string;
   author: string;
+  authorId?: string;
   featured?: boolean;
 }
 
@@ -20,6 +21,7 @@ const ArticleCard = ({
   category,
   date,
   author,
+  authorId,
   featured = false,
 }: ArticleCardProps) => {
   return (
@@ -45,7 +47,13 @@ const ArticleCard = ({
             {excerpt}
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            <span className="font-medium truncate">{author}</span>
+            <Link 
+              to={`/author/${authorId || '#'}`} 
+              className="font-medium truncate hover:text-primary transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {author}
+            </Link>
             <span className="flex-shrink-0">•</span>
             <time dateTime={date} className="truncate">{date}</time>
           </div>

@@ -38,6 +38,15 @@ export const uploadsApi = {
       },
     }) as Promise<{ success: boolean; urls: string[] }>;
   },
+
+  // Generic upload method (for avatars, etc.)
+  upload: async (formData: FormData) => {
+    return apiClient.post('/api/admin/uploads', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }) as Promise<{ success: boolean; data: { url: string } }>;
+  },
 };
 
 export default uploadsApi;

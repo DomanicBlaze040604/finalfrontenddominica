@@ -53,6 +53,10 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
   const [embedType, setEmbedType] = useState('twitter');
   const [embedUrl, setEmbedUrl] = useState('');
   const [embedCode, setEmbedCode] = useState('');
+  
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
 
   const editor = useEditor({
     extensions: [
@@ -319,6 +323,33 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
 
           <Separator orientation="vertical" className="h-6 mx-1" />
 
+          {/* Links */}
+          <ToolbarButton
+            onClick={() => {
+              const previousUrl = editor.getAttributes('link').href;
+              const { from, to } = editor.state.selection;
+              const selectedText = editor.state.doc.textBetween(from, to);
+              setLinkUrl(previousUrl || '');
+              setLinkText(selectedText || '');
+              setLinkDialogOpen(true);
+            }}
+            isActive={editor.isActive('link')}
+            title="Add/Edit Link"
+          >
+            <Link className="h-4 w-4" />
+          </ToolbarButton>
+          
+          {editor.isActive('link') && (
+            <ToolbarButton
+              onClick={() => editor.chain().focus().unsetLink().run()}
+              title="Remove Link"
+            >
+              <span className="text-xs font-bold">🔗✕</span>
+            </ToolbarButton>
+          )}
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
           {/* Media */}
           <ToolbarButton
             onClick={() => setImageDialogOpen(true)}
@@ -471,6 +502,100 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
               disabled={(!imageUrl && !imageFile) || isUploading}
             >
               {isUploading ? 'Uploading...' : 'Insert Image'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add/Edit Link</DialogTitle>
+            <DialogDescription>
+              Create a hyperlink to another page or website
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="link-text">Link Text</Label>
+              <Input
+                id="link-text"
+                placeholder="Click here"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                className="mt-2"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                The text that will be displayed (leave empty to use selected text)
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="link-url">URL *</Label>
+              <Input
+                id="link-url"
+                type="url"
+                placeholder="https://example.com"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                className="mt-2"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                The destination URL (must start with http:// or https://)
+              </p>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <input
+                type="checkbox"
+                id="link-new-tab"
+                defaultChecked
+                className="h-4 w-4"
+              />
+              <Label htmlFor="link-new-tab" className="text-sm cursor-pointer">
+                Open in new tab (recommended for external links)
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!linkUrl) return;
+                
+                // Validate URL
+                if (!linkUrl.startsWith('http://') && !linkUrl.startsWith('https://')) {
+                  alert('URL must start with http:// or https://');
+                  return;
+                }
+                
+                const { from, to } = editor.state.selection;
+                const hasSelection = from !== to;
+                
+                if (linkText && !hasSelection) {
+                  // Insert new text with link
+                  editor
+                    .chain()
+                    .focus()
+                    .insertContent(`<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`)
+                    .run();
+                } else {
+                  // Apply link to selection
+                  editor
+                    .chain()
+                    .focus()
+                    .setLink({ href: linkUrl, target: '_blank', rel: 'noopener noreferrer' })
+                    .run();
+                }
+                
+                setLinkDialogOpen(false);
+                setLinkUrl('');
+                setLinkText('');
+              }}
+              disabled={!linkUrl}
+            >
+              {editor.isActive('link') ? 'Update Link' : 'Add Link'}
             </Button>
           </DialogFooter>
         </DialogContent>

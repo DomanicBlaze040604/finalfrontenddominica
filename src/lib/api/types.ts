@@ -17,13 +17,20 @@ export interface Author {
   email: string;
   bio?: string;
   avatar?: string;
-  specialization: string[];
+  specialization?: string[];
   expertise?: string[];
-  isActive: boolean;
-  articlesCount: number;
+  isActive?: boolean;
+  articlesCount?: number;
+  articleCount?: number;
   location?: string;
-  joinDate: string;
-  profileUrl: string;
+  joinDate?: string;
+  profileUrl?: string;
+  socialLinks?: {
+    twitter?: string;
+    facebook?: string;
+    linkedin?: string;
+    website?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +100,7 @@ export interface ArticlesParams {
   sort?: string;
   category?: string;
   author?: string;
+  authorId?: string;
   search?: string;
   status?: 'draft' | 'published' | 'scheduled';
   isPinned?: boolean;
