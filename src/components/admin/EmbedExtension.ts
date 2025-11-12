@@ -58,19 +58,41 @@ export const EmbedNode = Node.create({
   renderHTML({ node }) {
     const { type, url, embedCode, caption, width, height } = node.attrs;
     
+    // If we have embedCode, render it as raw HTML
+    if (embedCode) {
+      return [
+        'div',
+        mergeAttributes({
+          'data-embed': '',
+          'data-type': type,
+          'data-url': url,
+          'data-caption': caption,
+          'data-width': width,
+          'data-height': height,
+          class: 'embed-block my-6',
+        }),
+        ['div', { class: 'embed-content', innerHTML: embedCode }],
+        caption ? ['p', { class: 'embed-caption text-sm text-muted-foreground text-center mt-2 italic' }, caption] : '',
+      ];
+    }
+    
+    // Fallback: render placeholder
     return [
       'div',
       mergeAttributes({
         'data-embed': '',
         'data-type': type,
         'data-url': url,
-        'data-embed-code': embedCode,
         'data-caption': caption,
         'data-width': width,
         'data-height': height,
-        class: 'embed-block my-6',
+        class: 'embed-block my-6 p-6 border-2 border-dashed border-muted-foreground/30 rounded-lg bg-muted/20',
       }),
-      ['div', { class: 'embed-content' }, embedCode || `[${type} embed: ${url}]`],
+      ['div', { class: 'text-center space-y-2' }, 
+        ['div', { class: 'text-sm font-medium text-muted-foreground' }, `${type.charAt(0).toUpperCase() + type.slice(1)} Embed`],
+        ['div', { class: 'text-xs text-muted-foreground font-mono' }, url],
+        ['div', { class: 'text-xs text-muted-foreground italic' }, 'Embed will render on published article']
+      ],
       caption ? ['p', { class: 'embed-caption text-sm text-muted-foreground text-center mt-2 italic' }, caption] : '',
     ];
   },
