@@ -34,15 +34,16 @@ const AuthorPage = () => {
     enabled: !!id && !!authorData?.success,
   });
 
-  const author = authorData?.success ? authorData.data : null;
-  const articles = articlesData?.success ? articlesData.data : [];
+  // Backend returns {author, recentArticles} structure
+  const author = authorData?.success ? ((authorData.data as any)?.author || authorData.data) : null;
+  const articles = articlesData?.success ? (Array.isArray(articlesData.data) ? articlesData.data : []) : [];
   
   // Debug logging
   console.log('Author ID from URL:', id);
   console.log('Author data:', author);
   console.log('Author error:', authorError);
   console.log('Articles data:', articlesData);
-  console.log('Articles count:', articles.length);
+  console.log('Articles count:', articles?.length || 0);
 
   if (authorLoading) {
     return (
