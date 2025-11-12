@@ -100,15 +100,10 @@ class AuthService {
       
       console.log('📝 Registration response:', response);
       
-      // Handle response
+      // Handle response - DON'T save token, let user login after registration
       if (response && typeof response === 'object' && 'success' in response && response.success) {
-        const responseData = response.data as any;
-        if (responseData.token) {
-          this.setToken(responseData.token);
-          if (responseData.user) {
-            this.setUser(responseData.user);
-          }
-        }
+        // Registration successful, but don't auto-login
+        // User should login manually after registration
         return response as AuthResponse;
       }
       

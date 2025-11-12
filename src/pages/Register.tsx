@@ -22,6 +22,29 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('📝 Register form submitted');
+    
+    // Validate name
+    if (!formData.name || formData.name.trim().length < 2) {
+      toast({
+        title: "Invalid Name",
+        description: "Please enter your full name (at least 2 characters).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -41,24 +64,48 @@ const Register = () => {
     }
 
     try {
+      console.log('📝 Calling registration API...');
       // Call the registration API
       const { authService } = await import('@/lib/api/auth');
-      await authService.register({
+      const result = await authService.register({
         email: formData.email,
         password: formData.password,
         fullName: formData.name,
       });
 
+      console.log('📝 Registration successful:', result);
+
       toast({
         title: "Registration Successful!",
-        description: "Your account has been created. You can now sign in.",
+        description: "Your account has been created. Redirecting to login...",
       });
       
-      navigate("/admin/login");
+      // Clear form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+      
+      // Redirect to login page
+      setTimeout(() => {
+        navigate("/admin/login");
+      }, 1500);
     } catch (error: any) {
+      console.error('📝 Registration error:', error);
+      
+      let errorMessage = "Failed to create account. Please try again.";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: "Registration Failed",
-        description: error.response?.data?.message || "Failed to create account. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

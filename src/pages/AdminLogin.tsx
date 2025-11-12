@@ -58,10 +58,10 @@ const AdminLogin = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('🔐 Form submitted with credentials:', credentials);
+    console.log('🔐 Form submitted with credentials:', { email: credentials.email, passwordLength: credentials.password.length });
     
     // Validate credentials
     if (!credentials.email || !credentials.password) {
@@ -72,17 +72,20 @@ const AdminLogin = () => {
       });
       return;
     }
-    
-    try {
-      loginMutation.mutate(credentials);
-    } catch (error) {
-      console.error('🔐 Mutation error:', error);
+
+    // Email validation
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(credentials.email)) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
         variant: "destructive",
       });
+      return;
     }
+    
+    console.log('🔐 Validation passed, calling mutation...');
+    loginMutation.mutate(credentials);
   };
 
   const handleInputChange = (field: string, value: string) => {
