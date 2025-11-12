@@ -92,6 +92,44 @@ class AuthService {
     }
   }
 
+  async register(data: { email: string; password: string; fullName: string }): Promise<AuthResponse> {
+    try {
+      console.log('📝 Attempting registration with:', { email: data.email, fullName: data.fullName });
+      
+      const response = await apiClient.post<AuthResponse>('/api/auth/register', data);
+      
+      console.log('📝 Registration response:', response);
+      
+      // Handle response
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
+        const responseData = response.data as any;
+        if (responseData.token) {
+          this.setToken(responseData.token);
+          if (responseData.user) {
+            this.setUser(responseData.user);
+          }
+        }
+        return response as AuthResponse;
+      }
+      
+      throw new Error('Invalid response format from server');
+    } catch (error: unknown) {
+      console.error('Registration error:', error);
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as any;
+        const message = axiosError.response?.data?.message || 'Registration failed';
+        throw new Error(message);
+      }
+      
+      throw new Error('Network error. Please check your connection.');
+    }
+  }
+
   async logout(): Promise<void> {
     try {
       await apiClient.post('/api/auth/logout');
