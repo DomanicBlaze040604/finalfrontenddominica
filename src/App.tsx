@@ -23,7 +23,7 @@ import BreakingNewsManager from "./pages/admin/BreakingNewsManager";
 import SocialMediaManager from "./pages/admin/SocialMediaManager";
 import AuthorsManager from "./pages/admin/AuthorsManager";
 import TagsManager from "./pages/admin/TagsManager";
-import MediaLibrary from "./pages/admin/MediaLibrary";
+
 import ScheduleManager from "./pages/admin/ScheduleManager";
 import SiteSettings from "./pages/admin/SiteSettings";
 import Analytics from "./pages/admin/Analytics";
@@ -141,11 +141,7 @@ const App = () => (
               <TagsManager />
             </ProtectedRoute>
           } />
-          <Route path="/admin/media" element={
-            <ProtectedRoute>
-              <MediaLibrary />
-            </ProtectedRoute>
-          } />
+
           <Route path="/admin/schedule" element={
             <ProtectedRoute>
               <ScheduleManager />

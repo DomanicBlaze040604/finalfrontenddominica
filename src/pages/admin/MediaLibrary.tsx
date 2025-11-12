@@ -176,7 +176,7 @@ const MediaLibrary = () => {
             <Card key={media.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
               <div className="aspect-square relative overflow-hidden bg-muted">
                 <img
-                  src={media.url}
+                  src={media.url.startsWith('http') ? media.url : `http://localhost:5000${media.url}`}
                   alt={media.alt}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -266,7 +266,7 @@ const MediaLibrary = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <img
-                    src={selectedImage.url}
+                    src={selectedImage.url.startsWith('http') ? selectedImage.url : `http://localhost:5000${selectedImage.url}`}
                     alt={selectedImage.alt}
                     className="w-full rounded-lg border"
                   />
