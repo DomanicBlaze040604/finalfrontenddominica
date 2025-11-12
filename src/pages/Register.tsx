@@ -19,7 +19,7 @@ const Register = () => {
     confirmPassword: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -31,13 +31,37 @@ const Register = () => {
       return;
     }
 
-    // In a real app, this would call the registration API
-    toast({
-      title: "Registration Successful!",
-      description: "Your account has been created. You can now sign in.",
-    });
-    
-    navigate("/admin/login");
+    if (formData.password.length < 8) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Call the registration API
+      const { authService } = await import('@/lib/api/auth');
+      await authService.register({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.name,
+      });
+
+      toast({
+        title: "Registration Successful!",
+        description: "Your account has been created. You can now sign in.",
+      });
+      
+      navigate("/admin/login");
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.response?.data?.message || "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
