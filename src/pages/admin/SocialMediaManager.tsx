@@ -31,7 +31,10 @@ const SocialMediaManager = () => {
   const updateMutation = useMutation({
     mutationFn: settingsApi.updateSocialMedia,
     onSuccess: () => {
+      // Invalidate all settings queries to refresh footer and other components
       queryClient.invalidateQueries({ queryKey: ["settings"] });
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ["settings"] });
       toast({
         title: "Social Media Links Updated",
         description: "Your social media links have been saved successfully.",

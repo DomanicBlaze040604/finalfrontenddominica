@@ -20,7 +20,18 @@ const Footer = () => {
   });
 
   const footerPages = footerPagesData?.success ? footerPagesData.data : [];
-  const socialMedia = settingsData?.success ? settingsData.data.socialMedia : {};
+  
+  // Use saved settings or fallback to default links
+  const defaultSocialMedia: any = {
+    facebook: 'https://www.facebook.com/profile.php?id=61583856353152',
+    twitter: 'https://x.com/domnews_dm',
+    instagram: 'https://www.instagram.com/dominicanews.dm/',
+    youtube: 'https://www.youtube.com/channel/UCvtEDb_00XXqe9oFUAkJ9ww',
+  };
+  
+  const socialMedia: any = settingsData?.success && settingsData.data.socialMedia 
+    ? { ...defaultSocialMedia, ...settingsData.data.socialMedia }
+    : defaultSocialMedia;
 
   // Always include Editorial Team link
   const editorialLink = { title: "Editorial Team", slug: "editorial" };
