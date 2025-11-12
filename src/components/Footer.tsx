@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { pagesApi } from "@/lib/api";
+import { pagesApi, settingsApi } from "@/lib/api";
 import { FooterNewsletter } from "./FooterNewsletter";
-import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, Linkedin } from "lucide-react";
 
 const Footer = () => {
   // Fetch footer pages from API
@@ -12,7 +12,15 @@ const Footer = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch social media links from settings
+  const { data: settingsData } = useQuery({
+    queryKey: ["settings"],
+    queryFn: settingsApi.get,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   const footerPages = footerPagesData?.success ? footerPagesData.data : [];
+  const socialMedia = settingsData?.success ? settingsData.data.socialMedia : {};
 
   // Always include Editorial Team link
   const editorialLink = { title: "Editorial Team", slug: "editorial" };
@@ -85,27 +93,49 @@ const Footer = () => {
           {/* Follow Us */}
           <div>
             <h3 className="font-display font-bold text-lg mb-4">Follow Us</h3>
-            <div className="flex gap-4 mb-6">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
-                <Facebook className="h-6 w-6" />
-                <span className="sr-only">Facebook</span>
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
-                <Twitter className="h-6 w-6" />
-                <span className="sr-only">Twitter</span>
-              </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
-                <Instagram className="h-6 w-6" />
-                <span className="sr-only">Instagram</span>
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
-                <Youtube className="h-6 w-6" />
-                <span className="sr-only">YouTube</span>
-              </a>
-            </div>
-            <p className="text-sm opacity-90">
-              Follow us for real-time updates and breaking news alerts.
-            </p>
+            {socialMedia && (socialMedia.facebook || socialMedia.twitter || socialMedia.instagram || socialMedia.youtube || socialMedia.linkedin) ? (
+              <>
+                <div className="flex gap-4 mb-6">
+                  {socialMedia.facebook && (
+                    <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                      <Facebook className="h-6 w-6" />
+                      <span className="sr-only">Facebook</span>
+                    </a>
+                  )}
+                  {socialMedia.twitter && (
+                    <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                      <Twitter className="h-6 w-6" />
+                      <span className="sr-only">Twitter</span>
+                    </a>
+                  )}
+                  {socialMedia.instagram && (
+                    <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                      <Instagram className="h-6 w-6" />
+                      <span className="sr-only">Instagram</span>
+                    </a>
+                  )}
+                  {socialMedia.youtube && (
+                    <a href={socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                      <Youtube className="h-6 w-6" />
+                      <span className="sr-only">YouTube</span>
+                    </a>
+                  )}
+                  {socialMedia.linkedin && (
+                    <a href={socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                      <Linkedin className="h-6 w-6" />
+                      <span className="sr-only">LinkedIn</span>
+                    </a>
+                  )}
+                </div>
+                <p className="text-sm opacity-90">
+                  Follow us for real-time updates and breaking news alerts.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm opacity-90">
+                Connect with us on social media for the latest updates.
+              </p>
+            )}
           </div>
 
           {/* Newsletter */}

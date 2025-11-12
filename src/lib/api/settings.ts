@@ -34,7 +34,7 @@ export const settingsApi = {
 
   // Update social media links (admin)
   updateSocialMedia: async (data: SocialMediaLinks) => {
-    return apiClient.put('/api/admin/settings/social-media', data) as Promise<ApiResponse<SiteSettings>>;
+    return apiClient.put('/api/admin/settings/social-media', { socialMedia: data }) as Promise<ApiResponse<SiteSettings>>;
   },
 };
 

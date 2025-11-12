@@ -122,7 +122,10 @@ const LiveUpdatePage = () => {
           {/* Initial Content */}
           {liveUpdate.content && (
             <div className="bg-white rounded-lg p-4 md:p-6 mb-6 shadow-sm">
-              <p className="text-base md:text-lg leading-relaxed">{liveUpdate.content}</p>
+              <div 
+                className="text-base md:text-lg leading-relaxed prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: liveUpdate.content }}
+              />
             </div>
           )}
 

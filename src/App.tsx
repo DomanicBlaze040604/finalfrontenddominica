@@ -40,6 +40,7 @@ import NotFound from "./pages/NotFound";
 import { ApiStatusChecker } from "./components/ApiStatusChecker";
 import DiagnosticPage from "./pages/DiagnosticPage";
 import ComponentDiagnostic from "./pages/ComponentDiagnostic";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 // Configure QueryClient with better error handling
 const queryClient = new QueryClient({
@@ -69,6 +70,7 @@ const App = () => (
           />
           <ApiStatusChecker>
             <BrowserRouter>
+              <ScrollToTop />
           <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/safe" element={<SafeIndex />} />
