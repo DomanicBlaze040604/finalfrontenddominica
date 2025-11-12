@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmbedManager } from './EmbedManager';
+import type { Embed } from '@/lib/api/types';
 import {
   Bold,
   Italic,
@@ -58,9 +60,7 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
   const [isUploading, setIsUploading] = useState(false);
   
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
-  const [embedType, setEmbedType] = useState('twitter');
-  const [embedUrl, setEmbedUrl] = useState('');
-  const [embedCode, setEmbedCode] = useState('');
+  const [inlineEmbeds, setInlineEmbeds] = useState<Embed[]>([]);
   
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -771,75 +771,32 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
         </DialogContent>
       </Dialog>
 
-      {/* Embed Dialog */}
+      {/* Embed Dialog - Using EmbedManager for better UX */}
       <Dialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Insert Social Media Embed</DialogTitle>
             <DialogDescription>
-              Embed content from Twitter, Instagram, YouTube, TikTok, Spotify, and more.
+              Add Instagram, YouTube, Twitter, TikTok, Spotify, Facebook embeds directly into your article.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="embed-type">Platform</Label>
-              <Select value={embedType} onValueChange={setEmbedType}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="twitter">Twitter / X</SelectItem>
-                  <SelectItem value="instagram">Instagram</SelectItem>
-                  <SelectItem value="youtube">YouTube</SelectItem>
-                  <SelectItem value="facebook">Facebook</SelectItem>
-                  <SelectItem value="tiktok">TikTok</SelectItem>
-                  <SelectItem value="spotify">Spotify</SelectItem>
-                  <SelectItem value="custom">Custom Embed Code</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {embedType !== 'custom' ? (
-              <div>
-                <Label htmlFor="embed-url">Post URL *</Label>
-                <Input
-                  id="embed-url"
-                  type="url"
-                  placeholder="https://twitter.com/user/status/123..."
-                  value={embedUrl}
-                  onChange={(e) => setEmbedUrl(e.target.value)}
-                  className="mt-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Paste the full URL of the post you want to embed
-                </p>
-              </div>
-            ) : (
-              <div>
-                <Label htmlFor="embed-code">Embed Code *</Label>
-                <Textarea
-                  id="embed-code"
-                  placeholder='<iframe src="..." ...></iframe>'
-                  value={embedCode}
-                  onChange={(e) => setEmbedCode(e.target.value)}
-                  className="mt-2 font-mono text-sm"
-                  rows={6}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Paste the embed code from the platform
-                </p>
-              </div>
-            )}
-          </div>
+          <EmbedManager
+            embeds={inlineEmbeds}
+            onChange={setInlineEmbeds}
+            mode="inline"
+            onInsertInline={(embedHtml) => {
+              // Insert the embed HTML into the editor at cursor position
+              editor.chain().focus().insertContent(embedHtml).run();
+              setEmbedDialogOpen(false);
+              setInlineEmbeds([]); // Clear after insertion
+            }}
+          />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEmbedDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={addEmbed} 
-              disabled={embedType === 'custom' ? !embedCode : !embedUrl}
-            >
-              Insert Embed
+            <Button variant="outline" onClick={() => {
+              setEmbedDialogOpen(false);
+              setInlineEmbeds([]);
+            }}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
