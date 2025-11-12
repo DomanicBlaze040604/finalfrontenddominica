@@ -13,11 +13,14 @@ import type { Embed } from '@/lib/api/types';
 interface EmbedManagerProps {
   embeds: Embed[];
   onChange: (embeds: Embed[]) => void;
+  mode?: 'separate' | 'inline'; // New prop for inline mode
+  onInsertInline?: (embedHtml: string) => void; // Callback to insert HTML into editor
 }
 
-export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
+export const EmbedManager = ({ embeds, onChange, mode = 'separate', onInsertInline }: EmbedManagerProps) => {
   const { toast } = useToast();
   const [validationStatus, setValidationStatus] = useState<Record<number, 'valid' | 'invalid' | 'pending'>>({});
+  const isInlineMode = mode === 'inline';
 
   const addEmbed = () => {
     onChange([
@@ -84,6 +87,67 @@ export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
     const newStatus = { ...validationStatus };
     delete newStatus[index];
     setValidationStatus(newStatus);
+  };
+
+  const insertEmbedInline = async (embed: Embed) => {
+    if (!onInsertInline) return;
+    
+    try {
+      // Fetch embed HTML from API
+      const { embedsApi } = await import('@/lib/api');
+      const response = await embedsApi.fetchEmbed(embed.url || '');
+      
+      if (response.success && response.data) {
+        const embedHtml = `<div class="embed-wrapper" data-embed-type="${embed.type}" data-embed-url="${embed.url}">${response.data.html}</div>`;
+        onInsertInline(embedHtml);
+        toast({ title: 'Embed Inserted!', description: `${embed.type} embed added to article` });
+      }
+    } catch (error) {
+      // Fallback to manual embed generation
+      let embedHtml = '';
+      const url = embed.url || '';
+      
+      switch (embed.type) {
+        case 'instagram':
+          const igPostId = url.match(/\/p\/([^\/]+)/)?.[1] || url.match(/\/reel\/([^\/]+)/)?.[1];
+          if (igPostId) {
+            embedHtml = `<iframe src="https://www.instagram.com/p/${igPostId}/embed/" width="540" height="700" frameborder="0" scrolling="no" allowtransparency="true" style="max-width: 100%; margin: 20px auto; display: block; border: 1px solid #dbdbdb; border-radius: 3px;"></iframe>`;
+          }
+          break;
+        case 'twitter':
+        case 'x':
+          const tweetId = url.match(/status\/(\d+)/)?.[1];
+          if (tweetId) {
+            embedHtml = `<iframe border="0" frameborder="0" height="500" width="550" src="https://twitframe.com/show?url=${encodeURIComponent(url)}" style="max-width: 100%; margin: 20px auto; display: block;"></iframe>`;
+          }
+          break;
+        case 'youtube':
+          const youtubeId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
+          if (youtubeId) {
+            embedHtml = `<div class="video-responsive" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/${youtubeId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+          }
+          break;
+        case 'facebook':
+          const fbUrl = encodeURIComponent(url);
+          embedHtml = `<iframe src="https://www.facebook.com/plugins/post.php?href=${fbUrl}&width=500&show_text=true" width="500" height="600" style="border:none;overflow:hidden;max-width:100%;margin:20px auto;display:block;" scrolling="no" frameborder="0" allowfullscreen="true"></iframe>`;
+          break;
+        case 'tiktok':
+          embedHtml = `<blockquote class="tiktok-embed" cite="${url}" data-video-id="${url.split('/').pop()}"><a href="${url}">View TikTok</a></blockquote><script async src="https://www.tiktok.com/embed.js"></script>`;
+          break;
+        case 'spotify':
+          const spotifyUrl = url.replace('spotify.com/', 'spotify.com/embed/');
+          embedHtml = `<iframe src="${spotifyUrl}" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+          break;
+      }
+      
+      if (embedHtml) {
+        const wrappedHtml = `<div class="embed-wrapper" data-embed-type="${embed.type}" data-embed-url="${url}">${embedHtml}</div>`;
+        onInsertInline(wrappedHtml);
+        toast({ title: 'Embed Inserted!', description: `${embed.type} embed added to article` });
+      } else {
+        toast({ title: 'Error', description: 'Could not generate embed', variant: 'destructive' });
+      }
+    }
   };
 
   const moveEmbed = (index: number, direction: 'up' | 'down') => {
@@ -162,13 +226,16 @@ export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              Social Media Embeds
+              {isInlineMode ? 'Insert Social Media Embed' : 'Social Media Embeds'}
               <span className="text-xs font-normal text-muted-foreground bg-primary/10 px-2 py-1 rounded">
                 100% Success Rate
               </span>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Add Instagram, YouTube, Twitter, TikTok, Spotify, Facebook, and more. Embeds appear at the end of your article.
+              {isInlineMode 
+                ? 'Add Instagram, YouTube, Twitter, TikTok, Spotify, Facebook embeds directly into your article content.'
+                : 'Add Instagram, YouTube, Twitter, TikTok, Spotify, Facebook, and more. Embeds appear at the end of your article.'
+              }
             </p>
             <Alert className="mt-3">
               <CheckCircle className="h-4 w-4" />
@@ -378,6 +445,20 @@ export const EmbedManager = ({ embeds, onChange }: EmbedManagerProps) => {
                       />
                     </div>
                   </div>
+
+                  {/* Insert Inline Button (only in inline mode) */}
+                  {isInlineMode && (
+                    <Button
+                      type="button"
+                      onClick={() => insertEmbedInline(embed)}
+                      disabled={!embed.url || status === 'invalid'}
+                      className="w-full gap-2"
+                      size="lg"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Insert {embed.type.charAt(0).toUpperCase() + embed.type.slice(1)} Embed Into Article
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
