@@ -109,6 +109,50 @@ const RichTextEditor = ({ content, onChange, placeholder = "Start writing...", c
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4',
       },
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData('text/plain');
+        if (!text) return false;
+
+        // Check if pasted text is a social media URL
+        const twitterMatch = text.match(/https?:\/\/(twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
+        const instagramMatch = text.match(/https?:\/\/(www\.)?instagram\.com\/(p|reel)\/([^\/\?]+)/);
+        const facebookMatch = text.match(/https?:\/\/(www\.)?facebook\.com\/[^\/]+\/(posts|videos)\/\d+/);
+        const youtubeMatch = text.match(/https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+
+        if (twitterMatch) {
+          event.preventDefault();
+          const tweetId = twitterMatch[2];
+          const embedHtml = `<iframe border="0" frameborder="0" height="500" width="550" src="https://twitframe.com/show?url=${encodeURIComponent(text)}" style="max-width: 100%; margin: 20px auto; display: block;"></iframe>`;
+          editor?.commands.insertContent(embedHtml);
+          return true;
+        }
+
+        if (instagramMatch) {
+          event.preventDefault();
+          const postId = instagramMatch[3];
+          const embedHtml = `<iframe src="https://www.instagram.com/p/${postId}/embed/" width="540" height="700" frameborder="0" scrolling="no" allowtransparency="true" style="max-width: 100%; margin: 20px auto; display: block; border: 1px solid #dbdbdb; border-radius: 3px;"></iframe>`;
+          editor?.commands.insertContent(embedHtml);
+          return true;
+        }
+
+        if (facebookMatch) {
+          event.preventDefault();
+          const fbUrl = encodeURIComponent(text);
+          const embedHtml = `<iframe src="https://www.facebook.com/plugins/post.php?href=${fbUrl}&width=500&show_text=true" width="500" height="600" style="border:none;overflow:hidden;max-width:100%;margin:20px auto;display:block;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+          editor?.commands.insertContent(embedHtml);
+          return true;
+        }
+
+        if (youtubeMatch) {
+          event.preventDefault();
+          const videoId = youtubeMatch[3];
+          const embedHtml = `<div class="video-responsive" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+          editor?.commands.insertContent(embedHtml);
+          return true;
+        }
+
+        return false;
+      },
     },
   });
 

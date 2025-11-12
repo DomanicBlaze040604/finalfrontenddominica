@@ -134,6 +134,10 @@ export const liveUpdatesApi = {
   deleteUpdate: async (liveUpdateId: string, updateId: string) => {
     return apiClient.delete(`/api/admin/live-updates/${liveUpdateId}/updates/${updateId}`) as Promise<ApiResponse<LiveUpdate>>;
   },
+
+  editUpdate: async (liveUpdateId: string, updateId: string, data: { content: string }) => {
+    return apiClient.put(`/api/admin/live-updates/${liveUpdateId}/updates/${updateId}`, data) as Promise<ApiResponse<LiveUpdate>>;
+  },
 };
 
 export default liveUpdatesApi;

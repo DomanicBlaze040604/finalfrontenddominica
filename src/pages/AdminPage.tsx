@@ -148,7 +148,10 @@ const AdminPage = () => {
         title: "Success!",
         description: `Article "${formData.title}" has been ${isEditing ? "updated" : formData.status === "published" ? "published" : "saved as draft"}.`,
       });
-      navigate(`/article/${data.data.slug}`);
+      // Navigate to articles list instead of the article page to avoid errors
+      setTimeout(() => {
+        navigate('/admin/articles');
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -308,10 +311,8 @@ const AdminPage = () => {
       isFeatured: formData.featured,
       isBreaking: formData.breaking,
       embeds: embeds.length > 0 ? embeds : undefined,
-      seo: {
-        metaTitle: formData.metaTitle,
-        metaDescription: formData.metaDescription,
-      },
+      seoTitle: formData.metaTitle,
+      seoDescription: formData.metaDescription,
     };
 
     saveArticleMutation.mutate(articleData);

@@ -155,7 +155,10 @@ const LiveUpdatePage = () => {
                       })}
                     </div>
                     
-                    <p className="text-base mb-2 leading-relaxed">{update.content}</p>
+                    <div 
+                      className="text-base mb-2 leading-relaxed prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: update.content }}
+                    />
                     
                     {update.attachments && update.attachments.length > 0 && (
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
