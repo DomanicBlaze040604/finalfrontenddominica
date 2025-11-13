@@ -32,6 +32,87 @@
     <meta name="twitter:title" content="Dominica News" />
     <meta name="twitter:description" content="Breaking news and updates from Dominica and the Caribbean." />
     <meta name="twitter:image" content="/logo.png" />
+
+    <!-- Schema.org Structured Data -->
+    <!-- NewsMediaOrganization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsMediaOrganization",
+      "name": "Dominica News",
+      "alternateName": "Dominica News DM",
+      "url": "https://www.dominicanews.dm",
+      "logo": "https://www.dominicanews.dm/assets/logo.png",
+      "sameAs": [
+        "https://www.facebook.com/profile.php?id=61583856353152",
+        "https://x.com/domnews_dm",
+        "https://www.instagram.com/dominicanews.dm/"
+      ],
+      "foundingDate": "2024-01-01",
+      "founders": [
+        {
+          "@type": "Person",
+          "name": "Dominica News Team"
+        }
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Editorial",
+        "email": "editor@dominicanews.dm"
+      },
+      "description": "Stay informed with Dominica News — your trusted source for breaking news, weather, politics, and Caribbean updates."
+    }
+    </script>
+
+    <!-- WebSite Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://www.dominicanews.dm#website",
+      "url": "https://www.dominicanews.dm",
+      "name": "Dominica News",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Dominica News",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.dominicanews.dm/assets/logo.png"
+        }
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.dominicanews.dm/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- WebPage Schema (Homepage) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "url": "https://www.dominicanews.dm",
+      "name": "Dominica News – Breaking News, Politics, Weather & Caribbean Updates",
+      "description": "Latest news from Dominica — breaking news, politics, weather updates, health, local stories, Caribbean coverage and more.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.dominicanews.dm#website"
+      },
+      "about": {
+        "@type": "NewsMediaOrganization",
+        "name": "Dominica News"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.dominicanews.dm/assets/og-image.jpg"
+      },
+      "datePublished": "2024-01-01",
+      "dateModified": "2025-11-14",
+      "inLanguage": "en"
+    }
+    </script>
   </head>
 
   <body>
