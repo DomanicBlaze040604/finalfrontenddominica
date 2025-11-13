@@ -28,8 +28,18 @@ export const settingsApi = {
   },
 
   // Update site settings (admin)
-  update: async (data: Partial<SiteSettings>) => {
-    return apiClient.put('/api/admin/settings', data) as Promise<ApiResponse<SiteSettings>>;
+  update: async (data: Partial<SiteSettings>): Promise<ApiResponse<SiteSettings>> => {
+    console.log('📤 Sending settings update:', data);
+    try {
+      // Use /original endpoint which accepts full settings object
+      const result = await apiClient.put<ApiResponse<SiteSettings>>('/api/admin/settings/original', data);
+      console.log('✅ Settings update successful:', result);
+      return result;
+    } catch (error: any) {
+      console.error('❌ Settings update failed:', error);
+      console.error('❌ Error response:', error.response?.data);
+      throw error;
+    }
   },
 
   // Update social media links (admin)

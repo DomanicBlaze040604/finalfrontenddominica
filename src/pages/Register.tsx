@@ -63,6 +63,20 @@ const Register = () => {
       return;
     }
 
+    // Password strength validation
+    const hasLowercase = /[a-z]/.test(formData.password);
+    const hasUppercase = /[A-Z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+
+    if (!hasLowercase || !hasUppercase || !hasNumber) {
+      toast({
+        title: "Password Too Weak",
+        description: "Password must contain at least one lowercase letter, one uppercase letter, and one number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       console.log('📝 Calling registration API...');
       // Call the registration API
@@ -74,6 +88,12 @@ const Register = () => {
       });
 
       console.log('📝 Registration successful:', result);
+
+      // Clear any existing auth tokens to ensure clean login
+      console.log('📝 Clearing any existing auth tokens...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      console.log('📝 Auth tokens cleared');
 
       toast({
         title: "Registration Successful!",
@@ -90,7 +110,8 @@ const Register = () => {
       
       // Redirect to login page
       setTimeout(() => {
-        navigate("/admin/login");
+        console.log('📝 Redirecting to login page...');
+        navigate("/admin/login", { replace: true });
       }, 1500);
     } catch (error: any) {
       console.error('📝 Registration error:', error);
@@ -201,6 +222,9 @@ const Register = () => {
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters with uppercase, lowercase, and number
+                </p>
               </div>
 
               <div className="space-y-2">

@@ -11,6 +11,8 @@ import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
+  console.log('🔐 ========== AdminLogin Component Mounted ==========');
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +20,8 @@ const AdminLogin = () => {
     email: "",
     password: ""
   });
+  
+  console.log('🔐 Initial credentials state:', credentials);
 
   const loginMutation = useMutation({
     mutationFn: (creds: typeof credentials) => {
@@ -58,13 +62,21 @@ const AdminLogin = () => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
-    console.log('🔐 Form submitted with credentials:', { email: credentials.email, passwordLength: credentials.password.length });
+    console.log('🔐 ========== FORM SUBMIT TRIGGERED ==========');
+    console.log('🔐 Form submitted with credentials:', { 
+      email: credentials.email, 
+      passwordLength: credentials.password.length,
+      hasEmail: !!credentials.email,
+      hasPassword: !!credentials.password
+    });
     
     // Validate credentials
     if (!credentials.email || !credentials.password) {
+      console.log('❌ Validation failed: Missing email or password');
       toast({
         title: "Validation Error",
         description: "Please enter both email and password.",
@@ -76,6 +88,7 @@ const AdminLogin = () => {
     // Email validation
     const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
     if (!emailRegex.test(credentials.email)) {
+      console.log('❌ Validation failed: Invalid email format');
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
@@ -84,18 +97,38 @@ const AdminLogin = () => {
       return;
     }
     
-    console.log('🔐 Validation passed, calling mutation...');
-    loginMutation.mutate(credentials);
+    console.log('✅ Validation passed, calling mutation...');
+    console.log('🔐 About to call loginMutation.mutate()');
+    
+    try {
+      loginMutation.mutate(credentials);
+      console.log('🔐 loginMutation.mutate() called successfully');
+    } catch (error) {
+      console.error('❌ Error calling mutation:', error);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setCredentials(prev => ({ ...prev, [field]: value }));
+    console.log(`🔐 Input changed: ${field} = ${value.substring(0, 3)}...`);
+    setCredentials(prev => {
+      const newCreds = { ...prev, [field]: value };
+      console.log('🔐 New credentials state:', { email: newCreds.email, passwordLength: newCreds.password.length });
+      return newCreds;
+    });
   };
 
   // Redirect if already authenticated
-  if (authService.isAuthenticated()) {
+  const isAuth = authService.isAuthenticated();
+  console.log('🔐 isAuthenticated check:', isAuth);
+  console.log('🔐 Token in localStorage:', localStorage.getItem('token'));
+  console.log('🔐 User in localStorage:', localStorage.getItem('user'));
+  
+  if (isAuth) {
+    console.log('🔐 User is authenticated, redirecting to /admin');
     return <Navigate to="/admin" replace />;
   }
+  
+  console.log('🔐 User is NOT authenticated, showing login form');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 p-4">
@@ -173,6 +206,11 @@ const AdminLogin = () => {
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 disabled={loginMutation.isPending}
+                onClick={(e) => {
+                  console.log('🔐 ========== BUTTON CLICKED ==========');
+                  console.log('🔐 Button type:', e.currentTarget.type);
+                  console.log('🔐 Form will submit...');
+                }}
               >
                 {loginMutation.isPending ? "Signing In..." : "Sign In"}
               </Button>

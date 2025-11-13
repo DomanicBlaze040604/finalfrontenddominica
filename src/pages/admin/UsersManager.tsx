@@ -176,6 +176,20 @@ const UsersManager = () => {
       return;
     }
 
+    // Password strength validation
+    const hasLowercase = /[a-z]/.test(formData.password);
+    const hasUppercase = /[A-Z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+
+    if (!hasLowercase || !hasUppercase || !hasNumber) {
+      toast({
+        title: 'Password Too Weak',
+        description: 'Password must contain at least one lowercase letter, one uppercase letter, and one number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     createMutation.mutate(formData);
   };
 

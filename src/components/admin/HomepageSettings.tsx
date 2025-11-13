@@ -189,10 +189,14 @@ export function HomepageSettings() {
   };
 
   const handleSave = () => {
-    updateSettingsMutation.mutate({
+    const dataToSend = {
       homepageSectionOrder: sectionOrder,
       homepageCategories: selectedCategories,
-    });
+    };
+    console.log('💾 Saving homepage settings:', dataToSend);
+    console.log('💾 Section order:', sectionOrder);
+    console.log('💾 Selected categories:', selectedCategories);
+    updateSettingsMutation.mutate(dataToSend);
   };
 
   // Get ordered categories for display
