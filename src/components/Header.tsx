@@ -1,10 +1,47 @@
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { categoriesApi } from "@/lib/api";
+import { authService } from "@/lib/api/auth";
+import { useState, useEffect } from "react";
+import { User, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const authenticated = authService.isAuthenticated();
+      const userData = authService.getUser();
+      setIsAuthenticated(authenticated);
+      setUser(userData);
+    };
+    
+    checkAuth();
+    
+    // Check every second for auth changes
+    const interval = setInterval(checkAuth, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setUser(null);
+    navigate('/');
+  };
   
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
@@ -35,16 +72,42 @@ const Header = () => {
           
           {/* Right buttons */}
           <div className="flex items-center gap-1 sm:gap-2 w-16 sm:w-24 md:w-32 lg:w-48 justify-end">
-            <Link to="/register" className="hidden sm:inline-flex">
-              <Button variant="default" size="sm" className="hover-scale text-xs sm:text-sm">
-                Register
-              </Button>
-            </Link>
-            <Link to="/admin/login" className="hidden sm:inline-flex">
-              <Button variant="ghost" size="sm" className="hover-scale text-xs sm:text-sm">
-                Sign In
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="hover-scale">
+                    <User className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">{user.fullName || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {authService.canAccessAdmin() && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/register" className="hidden sm:inline-flex">
+                  <Button variant="default" size="sm" className="hover-scale text-xs sm:text-sm">
+                    Register
+                  </Button>
+                </Link>
+                <Link to="/admin/login" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="sm" className="hover-scale text-xs sm:text-sm">
+                    Sign In
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 

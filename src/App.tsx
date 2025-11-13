@@ -117,7 +117,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/admin/pages" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <PagesManager />
             </ProtectedRoute>
           } />
@@ -127,12 +127,12 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/admin/social-media" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <SocialMediaManager />
             </ProtectedRoute>
           } />
           <Route path="/admin/authors" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <AuthorsManager />
             </ProtectedRoute>
           } />
@@ -148,12 +148,12 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <SiteSettings />
             </ProtectedRoute>
           } />
           <Route path="/admin/analytics" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <Analytics />
             </ProtectedRoute>
           } />
@@ -173,7 +173,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/admin/users" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <UsersManager />
             </ProtectedRoute>
           } />

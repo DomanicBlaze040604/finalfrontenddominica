@@ -27,34 +27,42 @@ import {
   Radio,
   UserCog,
 } from "lucide-react";
+import { authService } from "@/lib/api/auth";
 
+// Define menu items with role restrictions
 const mainItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard, exact: true },
-  { title: "Articles", url: "/admin/articles", icon: FileText },
-  { title: "Categories", url: "/admin/categories", icon: Layers },
-  { title: "Authors", url: "/admin/authors", icon: UserCog },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard, exact: true, roles: ['admin', 'editor', 'user'] },
+  { title: "Articles", url: "/admin/articles", icon: FileText, roles: ['admin', 'editor'] },
+  { title: "Categories", url: "/admin/categories", icon: Layers, roles: ['admin', 'editor'] },
+  { title: "Authors", url: "/admin/authors", icon: UserCog, roles: ['admin'] }, // Admin only
 ];
 
 const contentItems = [
-  { title: "Pages", url: "/admin/pages", icon: FileEdit },
-  { title: "Breaking News", url: "/admin/breaking-news", icon: AlertCircle },
-  { title: "Live Updates", url: "/admin/live-updates", icon: Radio },
-  { title: "Tags", url: "/admin/tags", icon: Tag },
+  { title: "Pages", url: "/admin/pages", icon: FileEdit, roles: ['admin'] }, // Admin only
+  { title: "Breaking News", url: "/admin/breaking-news", icon: AlertCircle, roles: ['admin', 'editor'] },
+  { title: "Live Updates", url: "/admin/live-updates", icon: Radio, roles: ['admin', 'editor'] },
+  { title: "Tags", url: "/admin/tags", icon: Tag, roles: ['admin', 'editor'] },
 ];
 
 const settingsItems = [
-  { title: "User Management", url: "/admin/users", icon: Users },
-  { title: "Social Media", url: "/admin/social-media", icon: Share2 },
-  { title: "Site Settings", url: "/admin/settings", icon: Settings },
-  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
-  { title: "Schedule", url: "/admin/schedule", icon: Calendar },
-  { title: "Recycle Bin", url: "/admin/recycle-bin", icon: Trash2 },
+  { title: "User Management", url: "/admin/users", icon: Users, roles: ['admin'] }, // Admin only
+  { title: "Social Media", url: "/admin/social-media", icon: Share2, roles: ['admin'] }, // Admin only
+  { title: "Site Settings", url: "/admin/settings", icon: Settings, roles: ['admin'] }, // Admin only
+  { title: "Analytics", url: "/admin/analytics", icon: BarChart3, roles: ['admin'] }, // Admin only
+  { title: "Schedule", url: "/admin/schedule", icon: Calendar, roles: ['admin', 'editor'] },
+  { title: "Recycle Bin", url: "/admin/recycle-bin", icon: Trash2, roles: ['admin', 'editor'] },
 ];
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const collapsed = state === "collapsed";
+  const userRole = authService.getUserRole() || 'user';
+  
+  // Filter menu items based on user role
+  const filterByRole = (items: typeof mainItems) => {
+    return items.filter(item => item.roles.includes(userRole));
+  };
 
   const isActive = (url: string, exact?: boolean) => {
     if (exact) return location.pathname === url;
@@ -115,9 +123,9 @@ export function AdminSidebar() {
           )}
         </div>
 
-        <MenuSection items={mainItems} label="Main" />
-        <MenuSection items={contentItems} label="Content" />
-        <MenuSection items={settingsItems} label="Settings" />
+        <MenuSection items={filterByRole(mainItems)} label="Main" />
+        <MenuSection items={filterByRole(contentItems)} label="Content" />
+        <MenuSection items={filterByRole(settingsItems)} label="Settings" />
       </SidebarContent>
     </Sidebar>
   );

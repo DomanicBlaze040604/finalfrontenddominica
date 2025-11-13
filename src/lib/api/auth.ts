@@ -34,6 +34,10 @@ class AuthService {
     try {
       console.log('🔐 Attempting login with:', { email: credentials.email });
       
+      // Clear any existing auth data first
+      this.clearAuth();
+      console.log('🔐 Cleared existing auth data');
+      
       const data = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
       
       console.log('🔐 Login response:', data);
@@ -43,11 +47,14 @@ class AuthService {
         // Check if response has success property
         if ('success' in data && data.success && 'data' in data && data.data) {
           const responseData = data.data as any;
-          if (responseData.token) {
-            this.setToken(responseData.token);
-            if (responseData.user) {
-              this.setUser(responseData.user);
-            }
+          if (responseData.token && responseData.user) {
+            // Set token and user synchronously
+            localStorage.setItem(this.tokenKey, responseData.token);
+            localStorage.setItem(this.userKey, JSON.stringify(responseData.user));
+            
+            console.log('🔐 Token saved:', !!localStorage.getItem(this.tokenKey));
+            console.log('🔐 User saved:', !!localStorage.getItem(this.userKey));
+            console.log('🔐 User data:', responseData.user);
           }
           return data as AuthResponse;
         }
@@ -62,8 +69,11 @@ class AuthService {
             role: credentials.email.includes('admin') ? 'admin' : 'user'
           };
           
-          this.setToken(token);
-          this.setUser(user);
+          localStorage.setItem(this.tokenKey, token);
+          localStorage.setItem(this.userKey, JSON.stringify(user));
+          
+          console.log('🔐 Token saved:', !!localStorage.getItem(this.tokenKey));
+          console.log('🔐 User saved:', !!localStorage.getItem(this.userKey));
           
           return {
             success: true,
@@ -161,7 +171,8 @@ class AuthService {
     try {
       if (typeof token === 'string' && token.length > 0) {
         localStorage.setItem(this.tokenKey, token);
-        console.log('✅ Token set successfully');
+        console.log('✅ Token set successfully:', token.substring(0, 20) + '...');
+        console.log('✅ Token verification:', localStorage.getItem(this.tokenKey) ? 'Token stored' : 'Token NOT stored');
       } else {
         console.error('❌ Invalid token provided:', token);
       }
@@ -208,6 +219,16 @@ class AuthService {
   isAdmin(): boolean {
     const user = this.getUser();
     return user?.role === 'admin' || user?.role === 'super_admin';
+  }
+
+  canAccessAdmin(): boolean {
+    const user = this.getUser();
+    return user?.role === 'admin' || user?.role === 'editor' || user?.role === 'super_admin';
+  }
+
+  getUserRole(): string | null {
+    const user = this.getUser();
+    return user?.role || null;
   }
 }
 

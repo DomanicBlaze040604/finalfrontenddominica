@@ -30,18 +30,40 @@ const AdminLogin = () => {
     },
     onSuccess: (data) => {
       console.log('🔐 Login successful:', data);
-      const isAdmin = credentials.email === "admin@dominicanews.com" || 
-                     credentials.email.includes('admin');
+      
+      // Double-check localStorage
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      console.log('🔐 Final verification - Token:', savedToken ? 'EXISTS' : 'MISSING');
+      console.log('🔐 Final verification - User:', savedUser ? 'EXISTS' : 'MISSING');
+      
+      if (!savedToken || !savedUser) {
+        console.error('❌ CRITICAL: Token or user not saved to localStorage!');
+        toast({
+          title: "Login Error",
+          description: "Failed to save login data. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check user role from response
+      const userRole = data?.data?.user?.role || 'user';
+      const canAccessAdmin = userRole === 'admin' || userRole === 'editor';
+      
+      console.log('🔐 User role:', userRole);
+      console.log('🔐 Can access admin:', canAccessAdmin);
       
       toast({
         title: "Welcome back!",
-        description: isAdmin ? "Successfully logged in to admin panel." : "Successfully logged in.",
+        description: "Redirecting to dashboard...",
       });
       
-      // Small delay to ensure token is set
+      // Use window.location.href for hard navigation
+      console.log('🔐 Redirecting to:', canAccessAdmin ? '/admin' : '/');
       setTimeout(() => {
-        navigate(isAdmin ? "/admin" : "/");
-      }, 100);
+        window.location.href = canAccessAdmin ? '/admin' : '/';
+      }, 300);
     },
     onError: (error: unknown) => {
       console.error('🔐 Login error:', error);
@@ -117,18 +139,14 @@ const AdminLogin = () => {
     });
   };
 
-  // Redirect if already authenticated
+  // Check if already authenticated and redirect
   const isAuth = authService.isAuthenticated();
-  console.log('🔐 isAuthenticated check:', isAuth);
-  console.log('🔐 Token in localStorage:', localStorage.getItem('token'));
-  console.log('🔐 User in localStorage:', localStorage.getItem('user'));
-  
-  if (isAuth) {
-    console.log('🔐 User is authenticated, redirecting to /admin');
+  if (isAuth && !loginMutation.isPending) {
+    console.log('🔐 Already authenticated, redirecting to admin');
     return <Navigate to="/admin" replace />;
   }
   
-  console.log('🔐 User is NOT authenticated, showing login form');
+  console.log('🔐 AdminLogin rendered');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 p-4">
