@@ -119,16 +119,6 @@ const LiveUpdatePage = () => {
             </div>
           </div>
 
-          {/* Initial Content */}
-          {liveUpdate.content && (
-            <div className="bg-white rounded-lg p-4 md:p-6 mb-6 shadow-sm">
-              <div 
-                className="text-base md:text-lg leading-relaxed prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: liveUpdate.content }}
-              />
-            </div>
-          )}
-
           {/* Updates Timeline */}
           <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm">
             <h2 className="text-xl md:text-2xl font-bold mb-6 flex items-center gap-2">

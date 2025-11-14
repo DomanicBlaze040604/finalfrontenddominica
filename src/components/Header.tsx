@@ -46,7 +46,8 @@ const Header = () => {
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getAll(),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 30 * 1000, // Cache for 30 seconds (reduced for faster updates)
+    refetchOnMount: true, // Refetch when component mounts
   });
 
   const categories = categoriesData?.success ? categoriesData.data : [];
