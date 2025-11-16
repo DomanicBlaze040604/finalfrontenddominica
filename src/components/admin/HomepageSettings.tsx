@@ -128,14 +128,19 @@ export function HomepageSettings() {
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: (data: any) => settingsApi.update(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    onSuccess: async () => {
+      // Aggressively clear all caches
+      await queryClient.invalidateQueries({ queryKey: ['settings'] });
+      await queryClient.refetchQueries({ queryKey: ['settings'] });
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+      
       toast({
         title: 'Settings saved!',
-        description: 'Homepage settings have been updated successfully.',
+        description: 'Homepage settings have been updated successfully. Refresh the homepage to see changes.',
       });
     },
     onError: (error: any) => {
+      console.error('Settings update error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to save settings',
