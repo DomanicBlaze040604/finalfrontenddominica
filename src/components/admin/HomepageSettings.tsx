@@ -129,10 +129,9 @@ export function HomepageSettings() {
   const updateSettingsMutation = useMutation({
     mutationFn: (data: any) => settingsApi.update(data),
     onSuccess: async () => {
-      // Aggressively clear all caches
+      // DON'T refetch - it causes the state to reset
+      // Just invalidate so next load will be fresh
       await queryClient.invalidateQueries({ queryKey: ['settings'] });
-      await queryClient.refetchQueries({ queryKey: ['settings'] });
-      await queryClient.invalidateQueries({ queryKey: ['categories'] });
       
       toast({
         title: 'Settings saved!',
@@ -149,20 +148,26 @@ export function HomepageSettings() {
     },
   });
 
-  // Initialize categories and settings
+  // Initialize categories
   useEffect(() => {
     if (categoriesData?.success) {
       const cats = categoriesData.data || [];
       setAllCategories(cats);
-      
-      // Initialize selected categories from settings or default to first 3
-      if (settingsData?.success && settingsData.data?.homepageCategories) {
+    }
+  }, [categoriesData]);
+
+  // Initialize selected categories from settings (only once when settings load)
+  useEffect(() => {
+    if (settingsData?.success && allCategories.length > 0 && selectedCategories.length === 0) {
+      if (settingsData.data?.homepageCategories && settingsData.data.homepageCategories.length > 0) {
+        console.log('📥 Loading categories from settings:', settingsData.data.homepageCategories);
         setSelectedCategories(settingsData.data.homepageCategories);
       } else {
-        setSelectedCategories(cats.slice(0, 3).map((c: any) => c.id));
+        console.log('📥 Using default categories (first 3)');
+        setSelectedCategories(allCategories.slice(0, 3).map((c: any) => c.id));
       }
     }
-  }, [categoriesData, settingsData]);
+  }, [settingsData, allCategories]);
 
   // Initialize section order
   useEffect(() => {
@@ -185,22 +190,25 @@ export function HomepageSettings() {
 
   const toggleCategoryVisibility = (categoryId: string) => {
     setSelectedCategories((prev) => {
-      if (prev.includes(categoryId)) {
-        return prev.filter((id) => id !== categoryId);
-      } else {
-        return [...prev, categoryId];
-      }
+      const newSelection = prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId];
+      console.log('👁️ Toggle category:', categoryId, 'New selection:', newSelection);
+      return newSelection;
     });
   };
 
   const handleSave = () => {
+    console.log('💾 Current state before save:');
+    console.log('  - selectedCategories:', selectedCategories);
+    console.log('  - selectedCategories.length:', selectedCategories.length);
+    console.log('  - allCategories:', allCategories.map((c: any) => c.id));
+    
     const dataToSend = {
       homepageSectionOrder: sectionOrder,
       homepageCategories: selectedCategories,
     };
     console.log('💾 Saving homepage settings:', dataToSend);
-    console.log('💾 Section order:', sectionOrder);
-    console.log('💾 Selected categories:', selectedCategories);
     updateSettingsMutation.mutate(dataToSend);
   };
 

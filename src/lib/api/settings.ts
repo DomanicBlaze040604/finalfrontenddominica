@@ -24,7 +24,7 @@ export interface SiteSettings {
 export const settingsApi = {
   // Get site settings
   get: async () => {
-    return apiClient.get('/api/settings') as Promise<ApiResponse<SiteSettings>>;
+    return apiClient.get('/api/settings/original') as Promise<ApiResponse<SiteSettings>>;
   },
 
   // Update site settings (admin)

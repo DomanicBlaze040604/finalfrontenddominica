@@ -56,10 +56,20 @@ const Index = () => {
     ? settingsData.data.homepageCategories
     : categories.slice(0, 3).map((cat: any) => cat.id); // Default: first 3 categories
 
+  console.log('🏠 Homepage settings:', {
+    settingsLoaded: !!settingsData,
+    settingsSuccess: settingsData?.success,
+    homepageCategories: settingsData?.data?.homepageCategories,
+    allCategories: categories.map((c: any) => ({ id: c.id, name: c.name })),
+    selectedCategories: homepageCategories
+  });
+
   // Filter and order categories based on settings
   const displayCategories = homepageCategories
     .map((catId: string) => categories.find((cat: any) => cat.id === catId))
     .filter((cat: any) => cat !== undefined);
+  
+  console.log('🏠 Display categories:', displayCategories.map((c: any) => c?.name));
 
   // Get section order from settings (default: latest-first)
   const sectionOrder = settingsData?.success && settingsData.data?.homepageSectionOrder 
