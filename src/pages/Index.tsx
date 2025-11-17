@@ -71,29 +71,53 @@ const Index = () => {
   
   console.log('🏠 Display categories:', displayCategories.map((c: any) => c?.name));
 
-  // Get section order from settings (default: latest-first)
-  const sectionOrder = settingsData?.success && settingsData.data?.homepageSectionOrder 
-    ? settingsData.data.homepageSectionOrder 
-    : 'latest-first';
+  // Get section order from settings
+  let sectionOrder: string[] = ['live-news', 'breaking-news', 'latest', 'featured'];
+  if (settingsData?.success && settingsData.data?.homepageSectionOrder) {
+    if (Array.isArray(settingsData.data.homepageSectionOrder)) {
+      sectionOrder = settingsData.data.homepageSectionOrder;
+    } else {
+      // Handle old format
+      const oldOrder = settingsData.data.homepageSectionOrder;
+      if (oldOrder === 'latest-first') {
+        sectionOrder = ['live-news', 'breaking-news', 'latest', 'featured'];
+      } else {
+        sectionOrder = ['live-news', 'breaking-news', 'featured', 'latest'];
+      }
+    }
+  }
 
-  // Render sections based on order
-  const renderMainSections = () => {
-    const featuredSection = (
-      <div className="bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto px-3 md:px-4 py-8 md:py-12">
-          <div 
-            ref={featuredObserver.ref}
-            className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
-          >
-            <SafeComponent componentName="FeaturedStory">
-              <FeaturedStory />
-            </SafeComponent>
-          </div>
+  // Get visibility settings (default: all visible)
+  const showLiveNews = settingsData?.success && settingsData.data?.showLiveNewsOnHomepage !== undefined
+    ? settingsData.data.showLiveNewsOnHomepage
+    : true;
+  const showBreakingNews = settingsData?.success && settingsData.data?.showBreakingNewsOnHomepage !== undefined
+    ? settingsData.data.showBreakingNewsOnHomepage
+    : true;
+  const showFeaturedNews = settingsData?.success && settingsData.data?.showFeaturedNewsOnHomepage !== undefined
+    ? settingsData.data.showFeaturedNewsOnHomepage
+    : true;
+  const showLatestNews = settingsData?.success && settingsData.data?.showLatestNewsOnHomepage !== undefined
+    ? settingsData.data.showLatestNewsOnHomepage
+    : true;
+
+  // Define section components
+  const sectionComponents: Record<string, JSX.Element | null> = {
+    'live-news': showLiveNews ? (
+      <SafeComponent componentName="LiveUpdatesWidget">
+        <LiveUpdatesWidget />
+      </SafeComponent>
+    ) : null,
+    'breaking-news': showBreakingNews ? (
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
+          <SafeComponent componentName="BreakingNewsPanel">
+            <BreakingNewsPanel />
+          </SafeComponent>
         </div>
       </div>
-    );
-
-    const latestSection = (
+    ) : null,
+    'latest': showLatestNews ? (
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-3 md:px-4 py-8 md:py-12">
           <div 
@@ -106,23 +130,29 @@ const Index = () => {
           </div>
         </div>
       </div>
-    );
+    ) : null,
+    'featured': showFeaturedNews ? (
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="container mx-auto px-3 md:px-4 py-8 md:py-12">
+          <div 
+            ref={featuredObserver.ref}
+            className={`section-fade-in ${featuredObserver.isVisible ? 'visible' : ''}`}
+          >
+            <SafeComponent componentName="FeaturedStory">
+              <FeaturedStory />
+            </SafeComponent>
+          </div>
+        </div>
+      </div>
+    ) : null,
+  };
 
-    if (sectionOrder === 'featured-first') {
-      return (
-        <>
-          {featuredSection}
-          {latestSection}
-        </>
-      );
-    } else {
-      return (
-        <>
-          {latestSection}
-          {featuredSection}
-        </>
-      );
-    }
+  // Render sections based on order
+  const renderMainSections = () => {
+    return sectionOrder.map((sectionId) => {
+      const section = sectionComponents[sectionId];
+      return section ? <div key={sectionId}>{section}</div> : null;
+    });
   };
 
   // Render category sections based on admin settings
@@ -172,21 +202,7 @@ const Index = () => {
           </SafeComponent>
         </div>
 
-        {/* Breaking News Panel - Prominent but Clean */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
-            <SafeComponent componentName="BreakingNewsPanel">
-              <BreakingNewsPanel />
-            </SafeComponent>
-          </div>
-        </div>
-
-        {/* Live Updates Widget */}
-        <SafeComponent componentName="LiveUpdatesWidget">
-          <LiveUpdatesWidget />
-        </SafeComponent>
-        
-        {/* Main Sections - Order controlled by admin settings */}
+        {/* All Sections - Order controlled by admin settings */}
         {renderMainSections()}
 
         {/* Category Sections - Controlled by admin settings */}

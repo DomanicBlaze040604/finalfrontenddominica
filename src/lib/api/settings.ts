@@ -16,8 +16,12 @@ export interface SiteSettings {
   siteName?: string;
   siteDescription?: string;
   contactEmail?: string;
-  homepageSectionOrder?: 'featured-first' | 'latest-first';
+  homepageSectionOrder?: 'featured-first' | 'latest-first' | string[]; // Support both old and new format
   homepageCategories?: string[]; // Array of category IDs to show on homepage in order
+  showLiveNewsOnHomepage?: boolean;
+  showBreakingNewsOnHomepage?: boolean;
+  showFeaturedNewsOnHomepage?: boolean;
+  showLatestNewsOnHomepage?: boolean;
   updatedAt: string;
 }
 
@@ -32,7 +36,7 @@ export const settingsApi = {
     console.log('📤 Sending settings update:', data);
     try {
       // Use /original endpoint which accepts full settings object
-      const result = await apiClient.put<ApiResponse<SiteSettings>>('/api/admin/settings/original', data);
+      const result = await apiClient.put<ApiResponse<SiteSettings>>('/api/settings/original', data);
       console.log('✅ Settings update successful:', result);
       return result;
     } catch (error: any) {
@@ -44,7 +48,7 @@ export const settingsApi = {
 
   // Update social media links (admin)
   updateSocialMedia: async (data: SocialMediaLinks) => {
-    return apiClient.put('/api/admin/settings/social-media', { socialMedia: data }) as Promise<ApiResponse<SiteSettings>>;
+    return apiClient.put('/api/settings/social-media', { socialMedia: data }) as Promise<ApiResponse<SiteSettings>>;
   },
 };
 

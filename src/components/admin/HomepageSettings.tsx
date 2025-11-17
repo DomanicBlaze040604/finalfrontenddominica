@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { GripVertical, Eye, EyeOff, Save } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Save, Radio, Zap, Star, Clock } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -30,6 +31,70 @@ interface SortableCategoryProps {
   category: any;
   isVisible: boolean;
   onToggle: (id: string) => void;
+}
+
+interface SortableSectionProps {
+  section: {
+    id: string;
+    name: string;
+    description: string;
+    icon: any;
+    color: string;
+    bgColor: string;
+  };
+}
+
+function SortableSection({ section }: SortableSectionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const IconComponent = section.icon;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-4 border rounded-lg ${section.bgColor} ${
+        isDragging ? 'shadow-lg ring-2 ring-primary' : 'shadow-sm'
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-5 w-5 text-muted-foreground" />
+      </div>
+      
+      <div className={`p-2 ${section.color} rounded-lg`}>
+        <IconComponent className="h-5 w-5" />
+      </div>
+
+      <div className="flex-1">
+        <div className="font-semibold">{section.name}</div>
+        <div className="text-sm text-muted-foreground">{section.description}</div>
+      </div>
+
+      <Badge variant="secondary" className="text-xs">
+        {section.id === 'live-news' && 'Live'}
+        {section.id === 'breaking-news' && 'Breaking'}
+        {section.id === 'featured' && 'Featured'}
+        {section.id === 'latest' && 'Latest'}
+      </Badge>
+    </div>
+  );
 }
 
 function SortableCategory({ category, isVisible, onToggle }: SortableCategoryProps) {
@@ -102,9 +167,49 @@ function SortableCategory({ category, isVisible, onToggle }: SortableCategoryPro
 export function HomepageSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [sectionOrder, setSectionOrder] = useState<'latest-first' | 'featured-first'>('latest-first');
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['live-news', 'breaking-news', 'latest', 'featured']);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [showLiveNews, setShowLiveNews] = useState(true);
+  const [showBreakingNews, setShowBreakingNews] = useState(true);
+  const [showFeaturedNews, setShowFeaturedNews] = useState(true);
+  const [showLatestNews, setShowLatestNews] = useState(true);
+
+  // Define available sections
+  const availableSections = [
+    {
+      id: 'live-news',
+      name: 'Live News',
+      description: 'Real-time updates and breaking stories',
+      icon: Radio,
+      color: 'bg-red-100 text-red-600',
+      bgColor: 'bg-gradient-to-r from-red-50 to-white',
+    },
+    {
+      id: 'breaking-news',
+      name: 'Breaking News',
+      description: 'Urgent news alerts and announcements',
+      icon: Zap,
+      color: 'bg-orange-100 text-orange-600',
+      bgColor: 'bg-gradient-to-r from-orange-50 to-white',
+    },
+    {
+      id: 'latest',
+      name: 'Latest News',
+      description: 'Most recent articles across all categories',
+      icon: Clock,
+      color: 'bg-green-100 text-green-600',
+      bgColor: 'bg-gradient-to-r from-green-50 to-white',
+    },
+    {
+      id: 'featured',
+      name: 'Featured Story',
+      description: 'Hero section with main featured article',
+      icon: Star,
+      color: 'bg-blue-100 text-blue-600',
+      bgColor: 'bg-gradient-to-r from-blue-50 to-white',
+    },
+  ];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -139,10 +244,15 @@ export function HomepageSettings() {
       });
     },
     onError: (error: any) => {
-      console.error('Settings update error:', error);
+      console.error('❌ Settings update error:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error message:', error.message);
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save settings';
+      
       toast({
         title: 'Error',
-        description: error.message || 'Failed to save settings',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -169,14 +279,51 @@ export function HomepageSettings() {
     }
   }, [settingsData, allCategories]);
 
-  // Initialize section order
+  // Initialize section order and visibility settings
   useEffect(() => {
-    if (settingsData?.success && settingsData.data?.homepageSectionOrder) {
-      setSectionOrder(settingsData.data.homepageSectionOrder);
+    if (settingsData?.success && settingsData.data) {
+      if (settingsData.data.homepageSectionOrder) {
+        // Handle both old format (string) and new format (array)
+        if (Array.isArray(settingsData.data.homepageSectionOrder)) {
+          setSectionOrder(settingsData.data.homepageSectionOrder);
+        } else {
+          // Convert old format to new format
+          const oldOrder = settingsData.data.homepageSectionOrder;
+          if (oldOrder === 'latest-first') {
+            setSectionOrder(['live-news', 'breaking-news', 'latest', 'featured']);
+          } else {
+            setSectionOrder(['live-news', 'breaking-news', 'featured', 'latest']);
+          }
+        }
+      }
+      if (settingsData.data.showLiveNewsOnHomepage !== undefined) {
+        setShowLiveNews(settingsData.data.showLiveNewsOnHomepage);
+      }
+      if (settingsData.data.showBreakingNewsOnHomepage !== undefined) {
+        setShowBreakingNews(settingsData.data.showBreakingNewsOnHomepage);
+      }
+      if (settingsData.data.showFeaturedNewsOnHomepage !== undefined) {
+        setShowFeaturedNews(settingsData.data.showFeaturedNewsOnHomepage);
+      }
+      if (settingsData.data.showLatestNewsOnHomepage !== undefined) {
+        setShowLatestNews(settingsData.data.showLatestNewsOnHomepage);
+      }
     }
   }, [settingsData]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleSectionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setSectionOrder((items) => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over.id as string);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleCategoryDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -200,15 +347,23 @@ export function HomepageSettings() {
 
   const handleSave = () => {
     console.log('💾 Current state before save:');
+    console.log('  - sectionOrder:', sectionOrder);
     console.log('  - selectedCategories:', selectedCategories);
     console.log('  - selectedCategories.length:', selectedCategories.length);
-    console.log('  - allCategories:', allCategories.map((c: any) => c.id));
+    console.log('  - showLiveNews:', showLiveNews);
+    console.log('  - showBreakingNews:', showBreakingNews);
+    console.log('  - showFeaturedNews:', showFeaturedNews);
+    console.log('  - showLatestNews:', showLatestNews);
     
     const dataToSend = {
       homepageSectionOrder: sectionOrder,
       homepageCategories: selectedCategories,
+      showLiveNewsOnHomepage: showLiveNews,
+      showBreakingNewsOnHomepage: showBreakingNews,
+      showFeaturedNewsOnHomepage: showFeaturedNews,
+      showLatestNewsOnHomepage: showLatestNews,
     };
-    console.log('💾 Saving homepage settings:', dataToSend);
+    console.log('💾 Saving homepage settings:', JSON.stringify(dataToSend, null, 2));
     updateSettingsMutation.mutate(dataToSend);
   };
 
@@ -234,33 +389,139 @@ export function HomepageSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Homepage Sections Visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Homepage Sections Visibility</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Control which sections appear on your homepage
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Live News Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-red-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Radio className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <Label className="text-base font-semibold cursor-pointer">Live News</Label>
+                <p className="text-sm text-muted-foreground">
+                  Real-time updates and breaking stories
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={showLiveNews}
+              onCheckedChange={setShowLiveNews}
+            />
+          </div>
+
+          {/* Breaking News Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-orange-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Zap className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <Label className="text-base font-semibold cursor-pointer">Breaking News</Label>
+                <p className="text-sm text-muted-foreground">
+                  Urgent news alerts and announcements
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={showBreakingNews}
+              onCheckedChange={setShowBreakingNews}
+            />
+          </div>
+
+          {/* Featured News Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Star className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <Label className="text-base font-semibold cursor-pointer">Featured Story</Label>
+                <p className="text-sm text-muted-foreground">
+                  Hero section with main featured article
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={showFeaturedNews}
+              onCheckedChange={setShowFeaturedNews}
+            />
+          </div>
+
+          {/* Latest News Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-green-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Clock className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <Label className="text-base font-semibold cursor-pointer">Latest News</Label>
+                <p className="text-sm text-muted-foreground">
+                  Most recent articles across all categories
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={showLatestNews}
+              onCheckedChange={setShowLatestNews}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Section Order */}
       <Card>
         <CardHeader>
           <CardTitle>Homepage Section Order</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Choose which section appears first on the homepage
+            Drag sections to change their order on the homepage. Sections will appear in this order from top to bottom.
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label>Section Order</Label>
-            <Select
-              value={sectionOrder}
-              onValueChange={(value: any) => setSectionOrder(value)}
+        <CardContent className="space-y-4">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleSectionDragEnd}
+          >
+            <SortableContext
+              items={sectionOrder}
+              strategy={verticalListSortingStrategy}
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="latest-first">
-                  Latest News First (Recommended)
-                </SelectItem>
-                <SelectItem value="featured-first">
-                  Featured Story First
-                </SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="space-y-3">
+                {sectionOrder.map((sectionId, index) => {
+                  const section = availableSections.find(s => s.id === sectionId);
+                  if (!section) return null;
+                  return (
+                    <div key={section.id} className="relative">
+                      <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <SortableSection section={section} />
+                    </div>
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex gap-2">
+              <div className="text-amber-600">⚡</div>
+              <div className="flex-1 text-sm text-amber-900">
+                <p className="font-medium mb-1">Section Order:</p>
+                <p className="text-amber-800">
+                  Drag sections up or down to change their display order. The top section will appear first on your homepage.
+                  Category sections will appear after these main sections.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -301,7 +562,7 @@ export function HomepageSettings() {
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
+                onDragEnd={handleCategoryDragEnd}
               >
                 <SortableContext
                   items={visibleCategories.map((c) => c.id)}
