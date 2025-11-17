@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Mail, Globe, Twitter, Facebook, Linkedin, Users } from 'lucide-react';
+import { FileText, Globe, Users } from 'lucide-react';
+import { Twitter, Facebook, Linkedin } from 'lucide-react';
 
 const EditorialPage = () => {
   const { data: authorsData, isLoading } = useQuery({
@@ -16,7 +17,9 @@ const EditorialPage = () => {
     queryFn: () => authorsApi.getAll({ limit: 100 }),
   });
 
-  const authors = authorsData?.success ? authorsData.data : [];
+  // Filter to show only active authors
+  const allAuthors = authorsData?.success ? authorsData.data : [];
+  const authors = allAuthors.filter((author: any) => author.isActive !== false);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

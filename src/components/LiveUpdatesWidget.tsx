@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { liveUpdatesApi } from '@/lib/api';
@@ -7,12 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin } from 'lucide-react';
 
 const LiveUpdatesWidget = () => {
-  const { data, refetch } = useQuery({
+  const { data } = useQuery({
     queryKey: ['liveUpdates', 'active'],
-    queryFn: () => liveUpdatesApi.getActive(3),
+    queryFn: () => liveUpdatesApi.getActive(3), // Backend now returns both active and paused
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
+  // Backend already filters for active and paused updates
   const liveUpdates = data?.success ? data.data : [];
 
   if (!liveUpdates || liveUpdates.length === 0) {
@@ -66,10 +66,16 @@ const LiveUpdatesWidget = () => {
                     <Badge className={`${getTypeColor(update.type)} text-white text-xs`}>
                       {getTypeIcon(update.type)} {update.type.toUpperCase()}
                     </Badge>
-                    <div className="flex items-center gap-1 text-xs text-red-600 font-semibold animate-pulse">
-                      <div className="w-2 h-2 bg-red-600 rounded-full" />
-                      LIVE
-                    </div>
+                    {update.status === 'active' ? (
+                      <div className="flex items-center gap-1 text-xs text-red-600 font-semibold animate-pulse">
+                        <div className="w-2 h-2 bg-red-600 rounded-full" />
+                        LIVE
+                      </div>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        Recently Live
+                      </Badge>
+                    )}
                   </div>
 
                   <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">

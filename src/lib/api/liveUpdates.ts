@@ -104,39 +104,39 @@ export const liveUpdatesApi = {
 
   // Admin endpoints
   create: async (data: CreateLiveUpdateData) => {
-    return apiClient.post('/api/admin/live-updates', data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.post('/api/live-updates', data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   addUpdate: async (id: string, data: AddUpdateData) => {
-    return apiClient.post(`/api/admin/live-updates/${id}/updates`, data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.post(`/api/live-updates/${id}/updates`, data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   update: async (id: string, data: Partial<LiveUpdate>) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/api/live-updates/${id}`, data) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   delete: async (id: string) => {
-    return apiClient.delete(`/api/admin/live-updates/${id}`) as Promise<ApiResponse<void>>;
+    return apiClient.delete(`/api/live-updates/${id}`) as Promise<ApiResponse<void>>;
   },
 
   endLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'ended' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/api/live-updates/${id}`, { status: 'ended' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   pauseLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'paused' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/api/live-updates/${id}`, { status: 'paused' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   resumeLive: async (id: string) => {
-    return apiClient.put(`/api/admin/live-updates/${id}`, { status: 'active' }) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/api/live-updates/${id}`, { status: 'active' }) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   deleteUpdate: async (liveUpdateId: string, updateId: string) => {
-    return apiClient.delete(`/api/admin/live-updates/${liveUpdateId}/updates/${updateId}`) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.delete(`/api/live-updates/${liveUpdateId}/updates/${updateId}`) as Promise<ApiResponse<LiveUpdate>>;
   },
 
   editUpdate: async (liveUpdateId: string, updateId: string, data: { content: string }) => {
-    return apiClient.put(`/api/admin/live-updates/${liveUpdateId}/updates/${updateId}`, data) as Promise<ApiResponse<LiveUpdate>>;
+    return apiClient.put(`/api/live-updates/${liveUpdateId}/updates/${updateId}`, data) as Promise<ApiResponse<LiveUpdate>>;
   },
 };
 

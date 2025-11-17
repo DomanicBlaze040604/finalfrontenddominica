@@ -76,18 +76,23 @@ const LiveUpdatePage = () => {
           {/* Header */}
           <div className="bg-white rounded-lg p-4 md:p-6 mb-6 border-l-4 border-l-red-600 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
-              <Badge className="bg-red-600 text-white animate-pulse text-xs md:text-sm">
-                <div className="w-2 h-2 bg-white rounded-full mr-2" />
-                LIVE
-              </Badge>
-              <Badge className={`${getTypeColor(liveUpdate.type)} text-white text-xs md:text-sm`}>
-                {getTypeIcon(liveUpdate.type)} {liveUpdate.type.toUpperCase()}
-              </Badge>
-              {liveUpdate.status !== 'active' && (
+              {liveUpdate.status === 'active' ? (
+                <Badge className="bg-red-600 text-white animate-pulse text-xs md:text-sm">
+                  <div className="w-2 h-2 bg-white rounded-full mr-2" />
+                  LIVE
+                </Badge>
+              ) : liveUpdate.status === 'paused' ? (
+                <Badge variant="outline" className="text-xs md:text-sm">
+                  Recently Live
+                </Badge>
+              ) : (
                 <Badge variant="outline" className="text-xs md:text-sm">
                   {liveUpdate.status.toUpperCase()}
                 </Badge>
               )}
+              <Badge className={`${getTypeColor(liveUpdate.type)} text-white text-xs md:text-sm`}>
+                {getTypeIcon(liveUpdate.type)} {liveUpdate.type.toUpperCase()}
+              </Badge>
             </div>
             
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">{liveUpdate.title}</h1>

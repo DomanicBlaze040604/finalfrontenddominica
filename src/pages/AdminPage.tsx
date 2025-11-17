@@ -85,7 +85,9 @@ const AdminPage = () => {
   });
 
   const categories = categoriesData?.success ? categoriesData.data : [];
-  const authors = authorsData?.success ? authorsData.data : [];
+  const allAuthors = authorsData?.success ? authorsData.data : [];
+  // Filter to show only active authors in the dropdown
+  const authors = allAuthors.filter((author: any) => author.isActive !== false);
 
   // Populate form when editing existing article
   useEffect(() => {
