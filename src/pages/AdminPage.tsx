@@ -110,8 +110,11 @@ const AdminPage = () => {
       });
       
       if (article.featuredImage) {
+        console.log('📸 Loading article image:', article.featuredImage);
         setUploadedImageUrl(article.featuredImage);
         setImagePreview(article.featuredImage);
+      } else {
+        console.log('⚠️ No featured image found in article data');
       }
       
       // Set primary category
@@ -399,6 +402,7 @@ const AdminPage = () => {
                           e.stopPropagation();
                           setCoverImage(null);
                           setImagePreview(null);
+                          setUploadedImageUrl("");
                         }}
                       >
                         <X className="h-4 w-4" />
@@ -418,6 +422,16 @@ const AdminPage = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Show current image URL for debugging */}
+                {(uploadedImageUrl || imagePreview) && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium mb-1">Current Image:</p>
+                    <p className="text-xs text-muted-foreground break-all">
+                      {uploadedImageUrl || imagePreview}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="mt-4">
                   <Label htmlFor="imageAlt">Image Alt Text (for SEO & Accessibility)</Label>
