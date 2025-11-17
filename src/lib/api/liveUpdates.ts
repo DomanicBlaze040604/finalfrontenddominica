@@ -22,6 +22,8 @@ export interface LiveUpdate {
   id: string;
   title: string;
   content: string;
+  coverImage?: string;
+  coverImageAlt?: string;
   type: 'breaking' | 'sports' | 'weather' | 'traffic' | 'election' | 'general';
   status: 'active' | 'paused' | 'ended';
   priority: number;
@@ -52,6 +54,8 @@ export interface LiveUpdate {
 export interface CreateLiveUpdateData {
   title: string;
   content: string;
+  coverImage?: string;
+  coverImageAlt?: string;
   type: 'breaking' | 'sports' | 'weather' | 'traffic' | 'election' | 'general';
   priority?: number;
   authorId: string;

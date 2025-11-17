@@ -423,15 +423,36 @@ const AdminPage = () => {
                   )}
                 </div>
                 
-                {/* Show current image URL for debugging */}
-                {(uploadedImageUrl || imagePreview) && (
-                  <div className="mt-4 p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium mb-1">Current Image:</p>
-                    <p className="text-xs text-muted-foreground break-all">
-                      {uploadedImageUrl || imagePreview}
-                    </p>
+                {/* Image URL Input - Alternative to drag & drop */}
+                <div className="mt-4">
+                  <Label htmlFor="imageUrl">Or paste image URL directly</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="imageUrl"
+                      placeholder="https://example.com/image.jpg"
+                      value={uploadedImageUrl}
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        setUploadedImageUrl(url);
+                        setImagePreview(url);
+                      }}
+                    />
+                    {uploadedImageUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setUploadedImageUrl("");
+                          setImagePreview(null);
+                          setCoverImage(null);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
                 
                 <div className="mt-4">
                   <Label htmlFor="imageAlt">Image Alt Text (for SEO & Accessibility)</Label>

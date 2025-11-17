@@ -12,7 +12,7 @@ const LiveUpdatesWidget = () => {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  // Backend already filters for active and paused updates
+  // Backend returns active, paused, and ended updates
   const liveUpdates = data?.success ? data.data : [];
 
   if (!liveUpdates || liveUpdates.length === 0) {
@@ -60,7 +60,16 @@ const LiveUpdatesWidget = () => {
               to={`/live/${update.id}`}
               className="group"
             >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-600">
+              <Card className="h-full hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-600 overflow-hidden">
+                {update.coverImage && (
+                  <div className="relative h-32 overflow-hidden">
+                    <img
+                      src={update.coverImage}
+                      alt={update.coverImageAlt || update.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <Badge className={`${getTypeColor(update.type)} text-white text-xs`}>
@@ -71,9 +80,13 @@ const LiveUpdatesWidget = () => {
                         <div className="w-2 h-2 bg-red-600 rounded-full" />
                         LIVE
                       </div>
-                    ) : (
+                    ) : update.status === 'paused' ? (
                       <Badge variant="outline" className="text-xs">
                         Recently Live
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Ended
                       </Badge>
                     )}
                   </div>

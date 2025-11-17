@@ -85,9 +85,13 @@ const LiveUpdatePage = () => {
                 <Badge variant="outline" className="text-xs md:text-sm">
                   Recently Live
                 </Badge>
+              ) : liveUpdate.status === 'ended' ? (
+                <Badge variant="secondary" className="text-xs md:text-sm">
+                  Ended
+                </Badge>
               ) : (
                 <Badge variant="outline" className="text-xs md:text-sm">
-                  {liveUpdate.status.toUpperCase()}
+                  {String(liveUpdate.status).toUpperCase()}
                 </Badge>
               )}
               <Badge className={`${getTypeColor(liveUpdate.type)} text-white text-xs md:text-sm`}>
@@ -96,6 +100,27 @@ const LiveUpdatePage = () => {
             </div>
             
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">{liveUpdate.title}</h1>
+            
+            {/* Cover Image */}
+            {liveUpdate.coverImage && (
+              <div className="mb-6">
+                <img
+                  src={liveUpdate.coverImage}
+                  alt={liveUpdate.coverImageAlt || liveUpdate.title}
+                  className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+                />
+              </div>
+            )}
+            
+            {/* Initial Content as Summary */}
+            {liveUpdate.updates && liveUpdate.updates.length > 0 && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 border-l-4 border-l-primary">
+                <div 
+                  className="text-base leading-relaxed prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: liveUpdate.updates[0].content }}
+                />
+              </div>
+            )}
             
             {liveUpdate.metadata?.score && (
               <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 mb-4 border border-green-200">
@@ -128,16 +153,16 @@ const LiveUpdatePage = () => {
           <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm">
             <h2 className="text-xl md:text-2xl font-bold mb-6 flex items-center gap-2">
               <div className="w-1 h-6 bg-primary rounded" />
-              Live Updates ({liveUpdate.updates?.length || 0})
+              Live Updates ({liveUpdate.updates?.length ? liveUpdate.updates.length - 1 : 0})
             </h2>
             
-            {!liveUpdate.updates || liveUpdate.updates.length === 0 ? (
+            {!liveUpdate.updates || liveUpdate.updates.length <= 1 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No updates yet. Check back soon!</p>
+                <p>No additional updates yet. Check back soon!</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {liveUpdate.updates.slice().reverse().map((update, index) => (
+                {liveUpdate.updates.slice(1).reverse().map((update, index) => (
                   <div
                     key={index}
                     className="border-l-4 border-l-blue-600 pl-4 py-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors"

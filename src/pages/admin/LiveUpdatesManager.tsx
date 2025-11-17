@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { liveUpdatesApi, authorsApi, categoriesApi } from '@/lib/api';
+import { useDropzone } from 'react-dropzone';
+import { liveUpdatesApi, authorsApi, categoriesApi, uploadsApi } from '@/lib/api';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import RichTextEditor from '@/components/admin/RichTextEditor';
-import { PlusCircle, Play, Pause, StopCircle, Trash2, Eye, MessageSquare, X, Edit, Save } from 'lucide-react';
+import { PlusCircle, Play, Pause, StopCircle, Trash2, Eye, MessageSquare, X, Edit, Save, Upload } from 'lucide-react';
 
 const LiveUpdatesManager = () => {
   const { toast } = useToast();
@@ -28,6 +29,8 @@ const LiveUpdatesManager = () => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    coverImage: '',
+    coverImageAlt: '',
     type: 'general' as 'breaking' | 'sports' | 'weather' | 'traffic' | 'election' | 'general',
     priority: 3,
     authorId: '',
@@ -41,6 +44,10 @@ const LiveUpdatesManager = () => {
     isSticky: false,
     showOnHomepage: true,
   });
+  
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: liveUpdatesData } = useQuery({
     queryKey: ['admin', 'liveUpdates'],
@@ -190,6 +197,8 @@ const LiveUpdatesManager = () => {
     setFormData({
       title: '',
       content: '',
+      coverImage: '',
+      coverImageAlt: '',
       type: 'general',
       priority: 3,
       authorId: '',
@@ -203,7 +212,48 @@ const LiveUpdatesManager = () => {
       isSticky: false,
       showOnHomepage: true,
     });
+    setCoverImageFile(null);
+    setImagePreview(null);
   };
+
+  // Image upload handler
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setCoverImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Auto-upload
+      setIsUploading(true);
+      try {
+        const result = await uploadsApi.uploadFile(file);
+        const imageUrl = typeof result === 'string' ? result : result?.url || (result as any)?.data?.url;
+        
+        if (imageUrl) {
+          setFormData(prev => ({ ...prev, coverImage: imageUrl }));
+          toast({ title: "Image Uploaded", description: "Cover image uploaded successfully!" });
+        }
+      } catch (error: any) {
+        console.error("Upload error:", error);
+        const previewUrl = reader.result as string;
+        if (previewUrl) {
+          setFormData(prev => ({ ...prev, coverImage: previewUrl }));
+        }
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  }, [toast]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'] },
+    multiple: false
+  });
 
   const handleCreate = () => {
     // Check authentication before creating
@@ -235,6 +285,8 @@ const LiveUpdatesManager = () => {
     createMutation.mutate({
       title: formData.title,
       content: formData.content,
+      coverImage: formData.coverImage || undefined,
+      coverImageAlt: formData.coverImageAlt || undefined,
       type: formData.type,
       priority: formData.priority,
       authorId: formData.authorId,
@@ -360,6 +412,29 @@ const LiveUpdatesManager = () => {
                   </div>
                 </div>
 
+                {/* Show on Homepage Toggle */}
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                  <div className="flex-1">
+                    <Label className="font-medium text-sm">Show on Homepage</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Display this live update on the homepage
+                    </p>
+                  </div>
+                  <Switch
+                    checked={update.showOnHomepage}
+                    onCheckedChange={(checked) => {
+                      liveUpdatesApi.update(update.id, { showOnHomepage: checked })
+                        .then(() => {
+                          queryClient.invalidateQueries({ queryKey: ['admin', 'liveUpdates'] });
+                          toast({
+                            title: checked ? "Visible on Homepage" : "Hidden from Homepage",
+                            description: checked ? "This live update will appear on the homepage" : "This live update is now hidden from the homepage"
+                          });
+                        });
+                    }}
+                  />
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
@@ -398,6 +473,26 @@ const LiveUpdatesManager = () => {
                       onClick={() => resumeLiveMutation.mutate(update.id)}
                     >
                       <Play className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {update.status === 'ended' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (confirm('Relive this update? It will become active again.')) {
+                          liveUpdatesApi.update(update.id, { status: 'active' })
+                            .then(() => {
+                              queryClient.invalidateQueries({ queryKey: ['admin', 'liveUpdates'] });
+                              toast({ title: "Live Update Relived!", description: "This live update is now active again" });
+                            });
+                        }
+                      }}
+                      className="flex-1"
+                    >
+                      <Play className="h-4 w-4 mr-1" />
+                      Relive
                     </Button>
                   )}
                   
@@ -473,6 +568,64 @@ const LiveUpdatesManager = () => {
                     placeholder="Match starting soon..."
                     className="min-h-[200px]"
                   />
+                </div>
+
+                {/* Cover Image Upload */}
+                <div>
+                  <Label>Cover Image (Optional)</Label>
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all mt-2 ${
+                      isDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary"
+                    }`}
+                  >
+                    <input {...getInputProps()} />
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCoverImageFile(null);
+                            setImagePreview(null);
+                            setFormData(prev => ({ ...prev, coverImage: '' }));
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
+                        <p className="text-sm">
+                          {isDragActive ? "Drop image here" : isUploading ? "Uploading..." : "Drag & Drop or Browse"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-3">
+                    <Input
+                      placeholder="Or paste image URL"
+                      value={formData.coverImage}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, coverImage: e.target.value }));
+                        setImagePreview(e.target.value);
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Image description (alt text)"
+                      value={formData.coverImageAlt}
+                      onChange={(e) => setFormData(prev => ({ ...prev, coverImageAlt: e.target.value }))}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
