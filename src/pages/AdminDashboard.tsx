@@ -67,7 +67,7 @@ const AdminDashboard = () => {
         <div>
           <h1 className="font-display text-3xl font-bold mb-2">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your news site.
+            Welcome back! Here's what's happening with your news site...
           </p>
         </div>
 
